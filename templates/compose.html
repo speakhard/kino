@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New film — Kino</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='compose.css') }}">
+</head>
+<body class="composing">
+<header class="masthead">
+  <span class="wordmark">Kino</span>
+  <nav>
+    <a href="{{ url_for('catalogue') }}">Films</a>
+    <a href="{{ site.url }}">View site</a>
+  </nav>
+</header>
+<main>
+
+<h1 class="prose">New film</h1>
+
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+<form method="post" enctype="multipart/form-data" id="film-form">
+
+  <div class="field-row">
+    <div>
+      <label for="video_host">Video host</label>
+      <select id="video_host" name="video_host">
+        {% for name, host in hosts.items() %}
+        <option value="{{ name }}" {% if name == default_host %}selected{% endif %}>
+          {{ host.label }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="grow">
+      <label for="video_id">Video identifier</label>
+      <input id="video_id" name="video_id" required
+             placeholder="1234567"
+             autocomplete="off" autofocus>
+    </div>
+  </div>
+  <p class="hint">
+    The film must already exist on its host. Kino publishes the page; it does
+    not upload, encode, or store the video — and it cannot change the film's
+    privacy setting there. If the host has it private, the page will publish
+    and the player will not play.
+  </p>
+
+  <label for="title">Title</label>
+  <input id="title" name="title" maxlength="{{ max_title }}" required>
+
+  <label for="description">Description</label>
+  <textarea id="description" name="description" rows="5"
+            maxlength="{{ max_description }}"></textarea>
+
+  <label for="created">Publication date</label>
+  <input id="created" name="created" type="date">
+
+  <fieldset class="cover-fieldset">
+    <legend>Cover image</legend>
+    <p class="hint">
+      Every film needs one. Capture a frame from the film, or upload artwork.
+      Once chosen it is simply the cover — Kino does not record which it was.
+    </p>
+
+    <div class="cover-tabs">
+      <button type="button" id="tab-frame" class="active">Capture a frame</button>
+      <button type="button" id="tab-upload">Upload artwork</button>
+    </div>
+
+    <section id="panel-frame">
+      <label for="scrub-source" class="inline-label">Open the film locally</label>
+      <input id="scrub-source" type="file" accept="video/*">
+      <p class="hint">
+        The file stays on this machine. It is never uploaded and never stored —
+        Kino opens it only so you can pick a frame and read the runtime.
+      </p>
+
+      <div id="scrub-stage" hidden>
+        <video id="scrub-video" playsinline controls preload="metadata"></video>
+        <div class="scrub-controls">
+          <input id="scrub-position" type="range" min="0" max="1000" value="0">
+          <span id="scrub-readout" class="hint"></span>
+        </div>
+        <button type="button" id="capture">Use this frame</button>
+      </div>
+    </section>
+
+    <section id="panel-upload" hidden>
+      <label for="artwork" class="inline-label">Cover image file</label>
+      <input id="artwork" type="file" accept="image/*">
+    </section>
+
+    <div id="cover-preview" hidden>
+      <p class="hint" id="cover-source-note"></p>
+      <img id="cover-image" alt="Chosen cover">
+    </div>
+
+    {# The one input the server sees. Both routes converge here before the
+       form is submitted, which is why the record has no idea which was used. #}
+    <input id="cover" name="cover" type="file" accept="image/*" hidden required>
+  </fieldset>
+
+  {# Determined, never typed: read from the local file's metadata. Absent when
+     the cover came from artwork and no film was ever opened. #}
+  <input id="runtime" name="runtime" type="hidden">
+
+  <div class="compose-footer">
+    <span id="runtime-note" class="hint"></span>
+    <button type="submit">Publish</button>
+  </div>
+
+</form>
+
+<script>
+(function () {
+  var sourceInput  = document.getElementById('scrub-source');
+  var stage        = document.getElementById('scrub-stage');
+  var video        = document.getElementById('scrub-video');
+  var position     = document.getElementById('scrub-position');
+  var scrubReadout = document.getElementById('scrub-readout');
+  var captureBtn   = document.getElementById('capture');
+  var artwork      = document.getElementById('artwork');
+  var coverInput   = document.getElementById('cover');
+  var preview      = document.getElementById('cover-preview');
+  var previewImg   = document.getElementById('cover-image');
+  var sourceNote   = document.getElementById('cover-source-note');
+  var runtime      = document.getElementById('runtime');
+  var runtimeNote  = document.getElementById('runtime-note');
+  var created      = document.getElementById('created');
+
+  // Default the publication date to today; the publisher can change it.
+  created.value = new Date().toISOString().slice(0, 10);
+
+  function clock(seconds) {
+    if (!isFinite(seconds) || seconds <= 0) return '';
+    var whole = Math.round(seconds);
+    var h = Math.floor(whole / 3600);
+    var m = Math.floor((whole % 3600) / 60);
+    var s = whole % 60;
+    var mm = h ? String(m).padStart(2, '0') : String(m);
+    return (h ? h + ':' : '') + mm + ':' + String(s).padStart(2, '0');
+  }
+
+  // --- tabs -------------------------------------------------------------
+  var tabFrame  = document.getElementById('tab-frame');
+  var tabUpload = document.getElementById('tab-upload');
+  var panelFrame  = document.getElementById('panel-frame');
+  var panelUpload = document.getElementById('panel-upload');
+
+  function show(which) {
+    var frame = which === 'frame';
+    panelFrame.hidden = !frame;
+    panelUpload.hidden = frame;
+    tabFrame.classList.toggle('active', frame);
+    tabUpload.classList.toggle('active', !frame);
+  }
+  tabFrame.addEventListener('click', function () { show('frame'); });
+  tabUpload.addEventListener('click', function () { show('upload'); });
+
+  // --- the chosen cover, whatever its source ----------------------------
+  function setCover(file, note) {
+    // DataTransfer is how a generated File becomes the value of a file input,
+    // so the captured frame and an uploaded image submit identically.
+    var bag = new DataTransfer();
+    bag.items.add(file);
+    coverInput.files = bag.files;
+
+    if (previewImg.src) URL.revokeObjectURL(previewImg.src);
+    previewImg.src = URL.createObjectURL(file);
+    sourceNote.textContent = note;
+    preview.hidden = false;
+  }
+
+  // --- local film: frame source and runtime -----------------------------
+  sourceInput.addEventListener('change', function () {
+    var file = sourceInput.files && sourceInput.files[0];
+    if (!file) return;
+
+    video.src = URL.createObjectURL(file);
+    stage.hidden = false;
+  });
+
+  video.addEventListener('loadedmetadata', function () {
+    // The runtime is a fact the software already has. Do not ask for it.
+    if (isFinite(video.duration) && video.duration > 0) {
+      runtime.value = video.duration;
+      runtimeNote.textContent = 'Runtime ' + clock(video.duration) +
+                                ', read from the file.';
+    }
+    position.value = 0;
+    scrubReadout.textContent = clock(0) + ' / ' + clock(video.duration);
+  });
+
+  video.addEventListener('error', function () {
+    runtimeNote.textContent = 'This browser cannot decode that file — ' +
+      'upload artwork instead, or use an H.264 MP4.';
+  });
+
+  position.addEventListener('input', function () {
+    if (!isFinite(video.duration)) return;
+    video.currentTime = (position.value / 1000) * video.duration;
+  });
+
+  video.addEventListener('timeupdate', function () {
+    if (!isFinite(video.duration) || !video.duration) return;
+    position.value = Math.round((video.currentTime / video.duration) * 1000);
+    scrubReadout.textContent = clock(video.currentTime) + ' / ' +
+                               clock(video.duration);
+  });
+
+  captureBtn.addEventListener('click', function () {
+    if (!video.videoWidth) return;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // The canvas is not tainted: the video came from a local blob URL, not a
+    // cross-origin request. This is why the frame can be read back at all,
+    // and why it could never work against the host's embedded player.
+    canvas.toBlob(function (blob) {
+      if (!blob) return;
+      setCover(new File([blob], 'cover.jpg', { type: 'image/jpeg' }),
+               'Frame at ' + clock(video.currentTime) + '.');
+    }, 'image/jpeg', 0.92);
+  });
+
+  artwork.addEventListener('change', function () {
+    var file = artwork.files && artwork.files[0];
+    if (file) setCover(file, 'Uploaded artwork.');
+  });
+
+  document.getElementById('film-form').addEventListener('submit', function (e) {
+    if (!coverInput.files.length) {
+      e.preventDefault();
+      alert('Choose a cover image: capture a frame, or upload artwork.');
+    }
+  });
+})();
+</script>
+
+</main>
+</body>
+</html>

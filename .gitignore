@@ -1,0 +1,22 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Generated site (built from entries/ + artifacts/)
+site/
+site.tmp/
+
+# Cover images DO enter git. Cloudflare Pages builds the site from this
+# repository and cannot see anything git does not carry, and a cover is small.
+# Unlike Lens there is no original to keep out — Kino never holds the master,
+# only the film's reference on its host and a cover it can regenerate.
+
+# Secrets never enter git. Syndication credentials live in a gitignored .env,
+# read only by the local authoring app; the deploy never sees them.
+.env
+
+# OS / editors
+.DS_Store
+*.sublime-workspace

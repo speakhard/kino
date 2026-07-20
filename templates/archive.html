@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Archive — {{ site.name }}{% endblock %}
+{% block content %}
+
+<h1>Archive</h1>
+
+{% for year, films in years.items() %}
+<section class="archive-year">
+  <h2>{{ year }}</h2>
+  <ul>
+    {% for film in films %}
+    <li>
+      <a href="{{ '../' * depth }}f/{{ film.id }}/">{{ film | title_of }}</a>
+      {% if film | runtime %}<span class="film-meta">{{ film | runtime }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% else %}
+<p class="empty">Nothing here yet.</p>
+{% endfor %}
+
+{% endblock %}

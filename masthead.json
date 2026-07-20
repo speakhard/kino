@@ -1,0 +1,9 @@
+{
+  "name": "Kino",
+  "description": "Films worth watching.",
+  "author": "Josh Bernhard",
+  "url": "https://kino.joshbernhard.com",
+  "generator": "Kino",
+  "medium": "film",
+  "commons_spec": "0.1"
+}

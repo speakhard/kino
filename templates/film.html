@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ film | title_of }} — {{ site.name }}{% endblock %}
+{% block content %}
+
+<article class="film">
+
+  <h1>{{ film | title_of }}</h1>
+
+  <p class="film-meta">
+    {{ film | date }}
+    {% if film | runtime %}· {{ film | runtime }}{% endif %}
+  </p>
+
+  {% if withdrawn %}
+  {# The permalink is a promise. A withdrawn film keeps its address and says
+     plainly what happened, rather than 404ing on someone who linked to it. #}
+  <p class="withdrawn">This film has been withdrawn from the publication.</p>
+  {% endif %}
+
+  <div class="film-player">
+    <iframe src="{{ film.video | embed }}"
+            title="{{ film | title_of }}"
+            frameborder="0" allowfullscreen
+            allow="autoplay; fullscreen; picture-in-picture"></iframe>
+  </div>
+
+  {% if film.description %}
+  <div class="film-description">
+    {% for paragraph in film.description.split('\n\n') %}
+    {% if paragraph.strip() %}<p>{{ paragraph }}</p>{% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <p class="film-elsewhere">
+    <a href="{{ film.video | watch }}">Watch on {{ film.video | host_label }}</a>
+  </p>
+
+  <nav class="film-nav">
+    {% if newer %}<a href="../{{ newer.id }}/">← {{ newer | title_of }}</a>{% endif %}
+    {% if older %}<a href="../{{ older.id }}/">{{ older | title_of }} →</a>{% endif %}
+  </nav>
+
+</article>
+
+{% endblock %}

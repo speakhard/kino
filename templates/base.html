@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ site.name }}{% endblock %}</title>
+<meta name="description" content="{{ site.description }}">
+<link rel="stylesheet" href="{{ '../' * depth }}static/style.css">
+<link rel="alternate" type="application/atom+xml" title="{{ site.name }}" href="{{ '../' * depth }}feed.xml">
+{% block head %}{% endblock %}
+</head>
+<body>
+
+<header class="masthead">
+  <a class="wordmark" href="{{ '../' * depth }}">{{ site.name }}</a>
+  {% set nav = site.get('nav', {}) %}
+  {% if nav.get('archive', True) %}
+  <nav><a href="{{ '../' * depth }}archive/">Archive</a></nav>
+  {% endif %}
+</header>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <p>{{ site.author }} · <a href="{{ '../' * depth }}feed.xml">Feed</a></p>
+</footer>
+
+</body>
+</html>
