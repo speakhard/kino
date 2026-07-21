@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Published — Kino</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='compose.css') }}">
+</head>
+<body class="composing">
+<header class="masthead">
+  <span class="wordmark">Kino</span>
+  <nav>
+    <a href="{{ url_for('compose') }}">Publish another</a>
+    <a href="{{ url_for('catalogue') }}">Films</a>
+  </nav>
+</header>
+<main>
+  <p class="published-note">Published.</p>
+
+  <img class="published-thumb"
+       src="{{ url_for('cover', entry_id=film.id, name='cover.jpg') }}"
+       alt="Cover for {{ film | title_of }}">
+
+  <p class="prose">
+    <strong>{{ film | title_of }}</strong>{% if film | runtime %} · {{ film | runtime }}{% endif %}<br>
+    Permanent address: <code>/f/{{ film.id }}/</code>
+  </p>
+
+  {# The way back to the publication. Cloudflare rebuilds from the push, so the
+     "view" links may briefly run ahead of the live site — the hint says so. #}
+  <p class="published-links">
+    <a href="{{ site.url }}">View the site</a>
+    <a href="{{ site.url }}/f/{{ film.id }}/">View this film</a>
+    <a href="{{ watch_url }}">Watch on {{ film.video | host_label }}</a>
+    <a href="{{ url_for('edit', entry_id=film.id) }}">Edit it</a>
+  </p>
+  <p class="hint">
+    The published site rebuilds automatically; give it a minute if the film is
+    not there yet.
+  </p>
+</main>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edit — Kino</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='compose.css') }}">
+</head>
+<body class="composing">
+<header class="masthead">
+  <span class="wordmark">Kino</span>
+  <nav>
+    <a href="{{ url_for('catalogue') }}">Films</a>
+    <a href="{{ url_for('compose') }}">Publish</a>
+  </nav>
+</header>
+<main>
+
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+<h1 class="prose">Edit</h1>
+
+<img class="edit-preview"
+     src="{{ url_for('cover', entry_id=film.id, name='cover.jpg') }}"
+     alt="Cover for {{ film | title_of }}">
+
+{# The film itself lives on its host and is not Kino's to change. Editing here
+   is editing the page: its title, description, cover, and where it points. #}
+<p class="hint">
+  <code>{{ film.id }}</code> · the film lives on its host; Kino owns the page,
+  not the video.
+</p>
+
+<form method="post" enctype="multipart/form-data">
+
+  <div class="field-row">
+    <div>
+      <label for="video_host">Video host</label>
+      <select id="video_host" name="video_host">
+        {% for name, host in hosts.items() %}
+        <option value="{{ name }}" {% if name == film.video.host %}selected{% endif %}>
+          {{ host.label }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="grow">
+      <label for="video_id">Video identifier</label>
+      <input id="video_id" name="video_id" value="{{ film.video.id }}" required
+             autocomplete="off">
+    </div>
+  </div>
+  <p class="hint">
+    Correcting a mistyped identifier is fine — a typo is not a different film.
+    Pointing this at another work would make the permalink lie.
+  </p>
+
+  <label for="title">Title</label>
+  <input id="title" name="title" maxlength="{{ max_title }}"
+         value="{{ film.title }}" required>
+
+  <label for="description">Description</label>
+  <textarea id="description" name="description" rows="5"
+            maxlength="{{ max_description }}">{{ film.description }}</textarea>
+
+  <label for="visibility">State</label>
+  <select id="visibility" name="visibility">
+    {% for name, state in states.items() %}
+    {# A published film cannot cross back over the published line; offering the
+       option would only produce a rejection it could have predicted. #}
+    {% if state.published or not states[current].published %}
+    <option value="{{ name }}" {% if name == current %}selected{% endif %}>
+      {{ state.label }} — {{ state.note }}
+    </option>
+    {% endif %}
+    {% endfor %}
+  </select>
+
+  <fieldset class="cover-fieldset">
+    <legend>Replace cover</legend>
+    <p class="hint">Optional. Leave empty to keep the current cover.</p>
+    <input id="cover" name="cover" type="file" accept="image/*">
+  </fieldset>
+
+  <div class="compose-footer">
+    <a href="{{ url_for('catalogue') }}">Cancel</a>
+    <button type="submit">Save</button>
+  </div>
+
+</form>
+
+</main>
+</body>
+</html>

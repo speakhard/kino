@@ -25,7 +25,8 @@ import hosts
 import visibility
 from builder import site_config
 from covers import CARD_NAME, COVER_NAME
-from models import MAX_DESCRIPTION, MAX_TITLE
+from models import (MAX_DESCRIPTION, MAX_TITLE, display_title, entry_date,
+                    runtime_display)
 from publisher import PublishError, erase, publish, revise, withdraw
 
 app = Flask(__name__)
@@ -33,6 +34,14 @@ app = Flask(__name__)
 # A cover image, not a film. Generous but bounded — nothing large should ever
 # reach this application, because the video never comes here at all.
 app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
+
+# The authoring templates present films the same way the public site does, so
+# they share the builder's display filters. builder._env() registers the same
+# set for the static build; this is the authoring env's copy.
+app.jinja_env.filters["runtime"] = runtime_display
+app.jinja_env.filters["title_of"] = display_title
+app.jinja_env.filters["host_label"] = hosts.label
+app.jinja_env.filters["date"] = lambda film, fmt="%B %-d, %Y": entry_date(film).strftime(fmt)
 
 
 def _runtime_from(form):
