@@ -1,0 +1,17 @@
+# Everything needed to RUN the authoring application on a fresh machine.
+#
+# Clone Kino, create a virtualenv, `pip install -r requirements.txt`, and
+# `python serve.py` will run — no dependency to rediscover.
+#
+# This is the authoring environment, deliberately distinct from the deploy
+# build. The static publisher that Cloudflare Pages runs needs only Jinja2
+# (see requirements-build.txt); it never opens an image and never serves a
+# request. Keeping the two files apart keeps that architectural line visible.
+flask>=3.1,<4.0        # the private authoring web app (app.py)
+waitress>=3.0,<4.0     # production WSGI server (serve.py); Flask's dev server is not used
+pillow>=11.0           # cover-image derivation in covers.save_cover()
+
+# Jinja2 is imported directly by builder.py, which authoring uses to rebuild the
+# site on publish. It installs transitively via Flask, and is pinned on its own
+# in requirements-build.txt for the deploy build. Unlike Lens, Kino accepts no
+# HEIC input (covers.py registers no pillow-heif opener), so Pillow alone suffices.

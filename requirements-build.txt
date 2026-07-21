@@ -1,0 +1,13 @@
+# What Cloudflare Pages needs to build the published site — and nothing more.
+#
+# Kino's build renders templates and copies already-derived cover images. It
+# does no image processing: cover.jpg and card.jpg are generated on the
+# authoring host and travel in git, so the deploy pipeline never opens an image.
+#
+# That keeps Pillow out of the deploy build, which matters — Pillow is a
+# compiled extension, and making the public site's build depend on it compiling
+# would be a fragile way to render some HTML. covers.py imports Pillow lazily,
+# inside save_cover(), precisely so builder.py can read its constants without it.
+#
+# Authoring needs the full set (Flask, Waitress, Pillow): see requirements.txt.
+jinja2>=3.1,<4.0

@@ -14,7 +14,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image, ImageOps
+# Pillow is imported lazily inside save_cover(), not at module load. The build
+# path imports this module only for the size/name constants below, and the
+# Cloudflare Pages deploy build must not have to install Pillow — a compiled
+# extension — just to read a few strings. Authoring, which actually derives
+# images, carries the full dependency set.
 
 # Wide enough for a full-bleed page on a large display without being a heavy
 # download; the card is what the feed loads, and is much smaller.
@@ -42,6 +46,8 @@ def save_cover(upload, directory: Path) -> dict:
     saved as JPEG so the published site never carries a format a browser might
     refuse.
     """
+    from PIL import Image, ImageOps
+
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
 
