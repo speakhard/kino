@@ -1,0 +1,85 @@
+/* commons-ui — shared structural baseline.
+ *
+ * A REFERENCE stylesheet for The Commons presentation layer, not the protocol.
+ * It owns *structure* only: the page skeleton, the masthead/nav/footer layout,
+ * a shared spacing and width vocabulary. It deliberately owns almost no colour
+ * or type personality — each publication's own static/style.css, loaded after
+ * this file, provides palette, fonts, and character, and overrides anything
+ * here it needs to. The toolkit makes the three sites siblings; style.css keeps
+ * each one itself.
+ *
+ * Tokens a site may override in its own :root:
+ *   --content-width   the shared content column (Crows-width by default)
+ *   --masthead-gap    space between wordmark and nav
+ *   --accent          a single accent colour (may be set from branding.accent)
+ */
+
+:root {
+  --content-width: 680px;
+  --masthead-gap: 2rem;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 1.5rem;
+}
+
+img { max-width: 100%; height: auto; display: block; }
+
+/* --- Masthead ------------------------------------------------------------- */
+
+.masthead {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--masthead-gap);
+}
+
+.wordmark {
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+}
+
+.masthead nav {
+  display: flex;
+  gap: 1.25rem;
+}
+
+/* --- Main ----------------------------------------------------------------- */
+
+main {
+  max-width: var(--content-width);
+  margin: 0 auto;
+}
+
+/* --- Footer --------------------------------------------------------------- */
+/* One quiet line of provenance. Items are separated by a middot; a site may
+ * restyle .footer-line (e.g. stack the spans) in its own style.css. */
+
+.site-footer {
+  max-width: var(--content-width);
+  margin: 4rem auto 3rem;
+  text-align: center;
+}
+
+.footer-line {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 .5em;
+}
+
+.footer-line span:not(:last-child)::after {
+  content: "·";
+  margin-left: .5em;
+  opacity: .5;
+}
+
+.footer-line a { text-decoration: none; }
+.footer-line a:hover { text-decoration: underline; }

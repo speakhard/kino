@@ -1,0 +1,227 @@
+/* Kino — films worth watching.
+ *
+ * The third Commons publication, and the sibling that lives in the dark. Crows
+ * is warm paper, Lens is neutral graphite; Kino is a cinema — a near-black
+ * surround so a cover or a player is the only lit thing on the page, with a
+ * single warm amber accent, like the glow of a projector.
+ *
+ * Structure (the 680px column, the masthead and footer layout) comes from the
+ * shared commons.css, loaded first. This file, loaded after, provides Kino's
+ * palette, type, and the film components. It overrides commons where it must
+ * and inherits it everywhere else — the same shape as its siblings, its own
+ * character.
+ */
+
+:root {
+  --surround: #16171a;
+  --ink-1:    #ecebe9;   /* titles, primary */
+  --ink-2:    #a8a6a2;   /* meta, secondary */
+  --ink-3:    #6f6d69;   /* tertiary */
+  --hairline: #2b2c30;
+  --accent:   #d99a5b;   /* the projector's warm note */
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif: Georgia, "Times New Roman", serif;
+}
+
+html { background: var(--surround); }
+
+body {
+  background: var(--surround);
+  color: var(--ink-1);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 2.5rem 1.5rem 4rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+a:hover { color: var(--accent); }
+
+/* --- Masthead: sibling to CROWS/Lens, its own weight ---------------------- */
+
+.masthead {
+  padding-bottom: 1.25rem;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.wordmark {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--ink-1);
+}
+
+.masthead nav {
+  font-size: .72rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* --- The index: a column of films ---------------------------------------- */
+
+.film-card {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 1.25rem;
+  padding: 1.75rem 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.film-card:first-child { border-top: none; padding-top: 0; }
+
+.film-cover img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #000;
+  border: 1px solid var(--hairline);
+}
+
+.film-detail h2 {
+  margin: 0 0 .35rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.film-detail h2 a { text-decoration: none; }
+
+.film-meta {
+  margin: 0;
+  font-size: .8rem;
+  letter-spacing: .02em;
+  color: var(--ink-3);
+}
+
+.film-blurb {
+  margin: .6rem 0 0;
+  font-size: .95rem;
+  color: var(--ink-2);
+}
+
+/* --- A single film: the permalink page ----------------------------------- */
+
+.film h1 {
+  margin: 0 0 .35rem;
+  font-size: 1.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.film .film-meta { margin-bottom: 1.75rem; }
+
+.film-player {
+  aspect-ratio: 16 / 9;
+  margin: 0 0 1.75rem;
+  background: #000;
+  border: 1px solid var(--hairline);
+}
+
+.film-player iframe { width: 100%; height: 100%; display: block; }
+
+.film-description {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--ink-1);
+}
+
+.film-description p { margin: 0 0 1.1rem; }
+
+.film-elsewhere {
+  margin: 1.5rem 0 0;
+  font-size: .85rem;
+}
+
+.film-elsewhere a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.film-elsewhere a:hover { border-bottom-color: var(--accent); }
+
+.film-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--hairline);
+  font-size: .85rem;
+  color: var(--ink-2);
+}
+
+/* A withdrawn film keeps its address and says so, rather than 404ing. */
+.withdrawn {
+  margin: 0 0 1.5rem;
+  padding-left: .9rem;
+  border-left: 2px solid var(--accent);
+  font-size: .9rem;
+  color: var(--ink-2);
+}
+
+/* --- The archive: a spare index ------------------------------------------ */
+
+.film h1, .archive-year + .archive-year { }
+
+.archive-year { margin-bottom: 2.5rem; }
+
+.archive-year h2 {
+  margin: 0 0 .75rem;
+  font-size: .8rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+
+.archive-year ul { list-style: none; margin: 0; padding: 0; }
+
+.archive-year li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .5rem 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.archive-year li a { text-decoration: none; }
+
+/* Headings on index/archive share a quiet treatment. */
+h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 1.75rem;
+}
+
+.prose {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--ink-1);
+}
+
+/* A publication with nothing in it is a valid state, not an error. */
+.empty {
+  color: var(--ink-3);
+  font-style: italic;
+  padding: 3rem 0;
+}
+
+/* --- Footer: quiet, in the family ---------------------------------------- */
+
+.site-footer {
+  margin-top: 5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--hairline);
+  color: var(--ink-3);
+  font-size: .8rem;
+}
+
+@media (max-width: 620px) {
+  .film-card { grid-template-columns: 1fr; }
+  .film-cover img { aspect-ratio: 16 / 9; }
+}

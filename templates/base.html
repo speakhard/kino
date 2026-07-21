@@ -1,31 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}{{ site.name }}{% endblock %}</title>
-<meta name="description" content="{{ site.description }}">
-<link rel="stylesheet" href="{{ '../' * depth }}static/style.css">
-<link rel="alternate" type="application/atom+xml" title="{{ site.name }}" href="{{ '../' * depth }}feed.xml">
-{% block head %}{% endblock %}
-</head>
-<body>
+{# Kino's customization of the shared commons-ui shell.
 
-<header class="masthead">
-  <a class="wordmark" href="{{ '../' * depth }}">{{ site.name }}</a>
-  {% set nav = site.get('nav', {}) %}
-  {% if nav.get('archive', True) %}
-  <nav><a href="{{ '../' * depth }}archive/">Archive</a></nav>
-  {% endif %}
-</header>
-
-<main>
-{% block content %}{% endblock %}
-</main>
-
-<footer class="site-footer">
-  <p>{{ site.author }} · <a href="{{ '../' * depth }}feed.xml">Feed</a></p>
-</footer>
-
-</body>
-</html>
+   Kino adds nothing to the shell's structure; its personality is entirely in
+   static/style.css (the dark cinema surround, the amber accent, the film
+   player). The shell (templates/_commons/shell.html) renders the head,
+   masthead and footer from masthead.json; Kino's page templates fill `title`
+   and `content`, and read `depth` from the builder context. #}
+{% extends "_commons/shell.html" %}

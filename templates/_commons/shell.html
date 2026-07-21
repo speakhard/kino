@@ -1,0 +1,83 @@
+{#
+  commons-ui — the reference shell.
+
+  A REFERENCE IMPLEMENTATION of The Commons protocol's presentation layer, not
+  the protocol itself. It renders the shared page skeleton — head, masthead,
+  main, footer — driven entirely by the publication manifest (masthead.json).
+  Everything it reads from `branding`, `nav`, and `footer` is a NON-NORMATIVE
+  presentation hint (PROTOCOL.md §2): a different shell may honor, override, or
+  ignore any of it and still be conformant.
+
+  A publication customizes this by having its own base.html
+  `{% extends "_commons/shell.html" %}` and filling the blocks below. Each site
+  keeps its own static/style.css for palette and personality, layered over the
+  shared static/commons.css.
+
+  Context this template expects (all builders pass these):
+    site     the manifest dict (name, description, canonical_url, branding,
+             nav, footer, feed, …)
+    depth    how many path segments deep this page is, for relative URLs
+    preview  true on the local authoring surface, false in the built site
+#}
+{% set base = '../' * depth %}
+{% set brand = site.get('branding', {}) %}
+{% set foot = site.get('footer', {}) %}
+{# canonical_url is the manifest field (PROTOCOL.md §2); early publications used
+   `url`, so fall back to it and neither breaks. #}
+{% set canon = site.get('canonical_url') or site.get('url') %}
+<!doctype html>
+<html lang="en"{% block root_attrs %}{% endblock %}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ site.name }}{% endblock %}</title>
+<meta name="description" content="{{ site.description }}">
+{% if canon %}
+<link rel="canonical" href="{{ canon }}">
+<meta property="og:title" content="{{ site.name }}">
+<meta property="og:description" content="{{ site.description }}">
+<meta property="og:url" content="{{ canon }}">
+{% if brand.get('og_image') %}<meta property="og:image" content="{{ canon }}/{{ brand.og_image }}">{% endif %}
+{% endif %}
+{% if brand.get('favicon') %}<link rel="icon" href="{{ base }}{{ brand.favicon }}">{% endif %}
+{% if brand.get('accent') %}<style>:root { --accent: {{ brand.accent }}; }</style>{% endif %}
+<link rel="stylesheet" href="{{ base }}static/commons.css">
+<link rel="stylesheet" href="{{ base }}static/style.css">
+{% if site.get('feed') %}
+<link rel="alternate" type="application/atom+xml" title="{{ site.name }}" href="{{ base }}feed.xml">
+{% endif %}
+{% block head %}{% endblock %}
+</head>
+<body>
+
+<header class="masthead">
+  <a class="wordmark" href="{{ base }}">{{ site.name }}</a>
+  {% if site.get('nav') %}
+  <nav>
+    {% for item in site.nav %}
+    <a href="{{ base }}{{ item.href }}">{{ item.label }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
+</header>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+{% block after_main %}{% endblock %}
+
+<footer class="site-footer">
+  <p class="footer-line">
+    {% if foot.get('copyright') %}<span>{{ foot.copyright }}</span>{% endif %}
+    {% if foot.get('published_with') %}<span>Published with {{ foot.published_with }}</span>{% endif %}
+    {% if foot.get('commons') %}<span>Part of The Commons</span>{% endif %}
+    {% for link in foot.get('links', []) %}<span><a href="{{ link.href }}"{% if link.get('rel') %} rel="{{ link.rel }}"{% endif %}>{{ link.label }}</a></span>{% endfor %}
+    {% if site.get('feed') %}<span><a href="{{ base }}feed.xml">Feed</a></span>{% endif %}
+  </p>
+</footer>
+
+{% block body_end %}{% endblock %}
+
+</body>
+</html>

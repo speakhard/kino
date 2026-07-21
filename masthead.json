@@ -1,9 +1,29 @@
 {
+  "commons_spec": "0.2",
+  "profile": "kino",
+
   "name": "Kino",
   "description": "Films worth watching.",
   "author": "Josh Bernhard",
   "url": "https://kino.joshbernhard.com",
+  "canonical_url": "https://kino.joshbernhard.com",
   "generator": "Kino",
   "medium": "film",
-  "commons_spec": "0.1"
+  "part_of": "the-commons",
+  "feed": true,
+
+  "nav": [
+    { "label": "Archive", "href": "archive/" }
+  ],
+
+  "branding": {
+    "tagline": "Films worth watching.",
+    "accent": "#d99a5b",
+    "typography": "ink"
+  },
+
+  "footer": {
+    "copyright": "Josh Bernhard",
+    "commons": true
+  }
 }
