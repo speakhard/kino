@@ -1,0 +1,19 @@
+{
+  "id": "e2db18f0",
+  "created": "2026-07-22T00:00:00-07:00",
+  "title": "Love Bug @ The New Beverly",
+  "description": "Always on film.",
+  "runtime": 44,
+  "visibility": "public",
+  "publish_at": null,
+  "feed": {
+    "pinned": false,
+    "rank": null,
+    "sequence": null
+  },
+  "video": {
+    "host": "vimeo",
+    "id": "1211882034"
+  },
+  "cover": "cover.jpg"
+}
