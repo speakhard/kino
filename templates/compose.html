@@ -99,8 +99,13 @@
     </div>
 
     {# The one input the server sees. Both routes converge here before the
-       form is submitted, which is why the record has no idea which was used. #}
-    <input id="cover" name="cover" type="file" accept="image/*" hidden required>
+       form is submitted, which is why the record has no idea which was used.
+
+       Not `required`: a hidden required control cannot be focused to report
+       its own validity, so an empty one makes the browser block submission in
+       silence — Publish would do nothing at all. The submit guard below does
+       this check instead, and can actually say so. #}
+    <input id="cover" name="cover" type="file" accept="image/*" hidden>
   </fieldset>
 
   {# Determined, never typed: read from the local file's metadata. Absent when
@@ -179,22 +184,41 @@
     var file = sourceInput.files && sourceInput.files[0];
     if (!file) return;
 
+    // A fresh file gets a fresh verdict: re-enable capture until this one's
+    // metadata says otherwise, so a good film opened after a bad one works.
+    captureBtn.disabled = false;
     video.src = URL.createObjectURL(file);
     stage.hidden = false;
   });
 
   video.addEventListener('loadedmetadata', function () {
-    // The runtime is a fact the software already has. Do not ask for it.
+    // The runtime is a fact the software already has. Do not ask for it. It
+    // comes from the container/audio timeline, so it is valid even when the
+    // video track is not — which is exactly the audio-only case below.
     if (isFinite(video.duration) && video.duration > 0) {
       runtime.value = video.duration;
       runtimeNote.textContent = 'Runtime ' + clock(video.duration) +
                                 ', read from the file.';
     }
     position.value = 0;
-    scrubReadout.textContent = clock(0) + ' / ' + clock(video.duration);
+
+    if (video.videoWidth) {
+      captureBtn.disabled = false;
+      scrubReadout.textContent = clock(0) + ' / ' + clock(video.duration);
+    } else {
+      // Metadata (and usually audio) decoded, but not the video track: there
+      // are no pixels to scrub to or capture. The browser plays it as sound
+      // only and never fires 'error', so without this the failure is silent.
+      captureBtn.disabled = true;
+      scrubReadout.textContent = 'Audio only — this browser cannot decode the ' +
+        'video track of that file, so no frame can be captured. Upload artwork ' +
+        'instead, or re-export as an H.264 MP4.';
+    }
   });
 
   video.addEventListener('error', function () {
+    captureBtn.disabled = true;
+    scrubReadout.textContent = '';
     runtimeNote.textContent = 'This browser cannot decode that file — ' +
       'upload artwork instead, or use an H.264 MP4.';
   });
@@ -212,7 +236,13 @@
   });
 
   captureBtn.addEventListener('click', function () {
-    if (!video.videoWidth) return;
+    if (!video.videoWidth) {
+      // Reachable only if the button was somehow used while disabled; say why
+      // rather than no-op, so the click is never a dead click.
+      scrubReadout.textContent = 'No decodable video frame to capture — ' +
+        'upload artwork instead.';
+      return;
+    }
 
     var canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
