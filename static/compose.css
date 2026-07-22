@@ -1,0 +1,293 @@
+/* Kino — the authoring workroom.
+ *
+ * Private tooling, never copied into the built site (builder.py excludes it),
+ * so nothing here can reach the public publication. It borrows Lens's proven
+ * authoring patterns — the same catalogue, edit and confirmation surfaces —
+ * dressed in Kino's dark surround so the tool sits comfortably beside the
+ * publication it feeds without pretending to be it. Utilitarian on purpose:
+ * this is where films are filed, not where they are shown.
+ *
+ * Loaded after style.css, which owns the palette (--surround, --ink-*,
+ * --hairline, --accent), the masthead and the wordmark. This file adds one
+ * token — a raised field surface — and the form components.
+ */
+
+.composing { --field: #202126; }
+
+/* A centred, narrow column for the workroom; masthead and main share it so the
+   two align. style.css sets the palette and body padding; commons.css (which
+   provides the public column) is deliberately not loaded here. */
+.composing .masthead,
+.composing main {
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.composing main { padding-bottom: 6rem; }
+
+.composing .masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.composing .masthead nav a { margin-left: 1.25rem; }
+
+.composing h1.prose { font-size: 1.5rem; margin: 0 0 1.5rem; }
+
+/* --- Fields --------------------------------------------------------------- */
+
+.composing label {
+  display: block;
+  margin: 1.25rem 0 .4rem;
+  font-size: .78rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.composing input:not([type="range"]):not([type="checkbox"]),
+.composing select,
+.composing textarea {
+  font: inherit;
+  width: 100%;
+  padding: .6rem .7rem;
+  background: var(--field);
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  color: var(--ink-1);
+}
+
+.composing textarea { resize: vertical; }
+
+.composing input:focus,
+.composing select:focus,
+.composing textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Host + identifier sit on one row: a compact host select, an identifier that
+   takes the rest of the width. */
+.field-row { display: flex; gap: 1rem; align-items: flex-end; }
+.field-row > div { display: flex; flex-direction: column; }
+.field-row > div:first-child { flex: 0 0 auto; min-width: 9rem; }
+.field-row .grow { flex: 1; }
+.field-row label { margin-top: 0; }
+
+/* --- Buttons -------------------------------------------------------------- */
+
+/* Primary action: the amber note, dark text for contrast. */
+.composing button {
+  font: inherit;
+  font-size: .8rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: .7rem 1.6rem;
+  background: var(--accent);
+  color: var(--surround);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.composing button:hover { opacity: .9; }
+
+/* Secondary actions — tabs, frame capture, catalogue rows — stay quiet so they
+   never read as the primary Publish/Save. */
+.cover-tabs button,
+#capture,
+.catalogue-actions button {
+  background: transparent;
+  color: var(--ink-1);
+  border: 1px solid var(--hairline);
+  text-transform: none;
+  letter-spacing: 0;
+  padding: .35rem .8rem;
+}
+
+.cover-tabs button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.cover-tabs button:hover,
+#capture:hover,
+.catalogue-actions button:hover { opacity: 1; border-color: var(--ink-2); }
+
+/* Erasure stops a permalink answering. It must never look like Save. */
+.composing button.danger {
+  background: transparent;
+  color: #d98a7a;
+  border-color: #6e3b34;
+}
+
+/* --- Cover: fieldset, tabs, scrubber, preview ----------------------------- */
+
+.cover-fieldset,
+.composing fieldset {
+  margin: 1.5rem 0;
+  padding: 1rem 1.1rem 1.2rem;
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+}
+
+.composing legend {
+  padding: 0 .45rem;
+  font-size: .78rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.inline-label { margin-top: .5rem; }
+
+.cover-tabs { display: flex; gap: .5rem; margin-bottom: 1rem; }
+
+#scrub-stage { margin-top: 1rem; }
+
+#scrub-video {
+  width: 100%;
+  max-height: 320px;
+  display: block;
+  background: #000;
+  border: 1px solid var(--hairline);
+}
+
+.scrub-controls {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: .6rem 0;
+}
+
+#scrub-position { flex: 1; }
+#capture { margin-top: .3rem; }
+
+#cover-preview { margin-top: 1rem; }
+
+#cover-image {
+  display: block;
+  width: 320px;
+  max-width: 100%;
+  height: auto;
+  background: #000;
+  border: 1px solid var(--hairline);
+}
+
+/* The submit row: a quiet cancel/runtime note beside the primary button. */
+.compose-footer {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.compose-footer a { color: var(--ink-2); }
+
+/* --- Notices -------------------------------------------------------------- */
+
+.hint { font-size: .85rem; color: var(--ink-3); margin: .4rem 0 1rem; }
+
+.error {
+  padding: .9rem 1.1rem;
+  margin-bottom: 1.5rem;
+  background: #241a17;
+  border-left: 3px solid #a4503f;
+  color: #e2b09f;
+  font-size: .95rem;
+}
+
+.published-note {
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  margin: 0 0 1rem;
+}
+
+code { font-size: .85em; color: var(--ink-2); }
+
+/* --- Published confirmation & edit preview -------------------------------- */
+
+.published-thumb,
+.edit-preview {
+  display: block;
+  width: 320px;
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  background: #000;
+  border: 1px solid var(--hairline);
+}
+
+.published-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0 .4rem;
+}
+
+.published-links a { color: var(--accent); }
+
+/* --- Catalogue ------------------------------------------------------------ */
+
+.catalogue-row {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.catalogue-thumb img {
+  width: 120px;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  background: #000;
+  border: 1px solid var(--hairline);
+}
+
+.catalogue-detail { flex: 1; min-width: 0; }
+
+.catalogue-caption { margin: 0 0 .35rem; font-size: 1rem; }
+
+.catalogue-meta {
+  margin: 0 0 .5rem;
+  font-size: .82rem;
+  color: var(--ink-2);
+}
+
+.catalogue-meta code { color: var(--ink-1); }
+
+.catalogue-actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: 0;
+}
+
+.catalogue-actions form { display: inline; margin: 0; }
+.catalogue-actions a { color: var(--accent); }
+
+/* --- State badges --------------------------------------------------------- */
+
+.state {
+  padding: .1rem .45rem;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  font-size: .78rem;
+  color: var(--ink-2);
+}
+
+.state-public { color: var(--accent); border-color: var(--accent); }
+.state-archived,
+.state-draft,
+.state-private,
+.state-scheduled { opacity: .8; }
+
+@media (max-width: 620px) {
+  .field-row { flex-direction: column; align-items: stretch; }
+  .field-row > div:first-child { min-width: 0; }
+}
