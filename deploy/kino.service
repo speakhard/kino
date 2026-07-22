@@ -1,0 +1,76 @@
+# Kino authoring service — private, Tailscale-only.
+#
+# Placeholders to fill before installing (see deploy/README.md):
+#   __USER__          the unprivileged user that owns the checkout
+#   __GROUP__         that user's group
+#   __KINO_DIR__      absolute path to the kino checkout on ppmanchester
+#   __TAILSCALE_IP__  ppmanchester's Tailscale address (`tailscale ip -4`)
+#
+# The service binds ONLY to the Tailscale address. serve.py defaults to
+# loopback so a misconfigured deployment fails closed; this unit is what opens
+# it to the tailnet, deliberately and visibly.
+#
+# Adapted from the Lens unit, itself adapted from Crows, which paid for the
+# sandboxing lessons below in production. They are kept rather than trimmed:
+# every comment records a failure that actually happened.
+
+[Unit]
+Description=Kino authoring service (private, Tailscale-only)
+Documentation=https://github.com/speakhard/kino
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+Group=__GROUP__
+WorkingDirectory=__KINO_DIR__
+
+Environment=KINO_HOST=__TAILSCALE_IP__
+Environment=KINO_PORT=11914
+ExecStart=__KINO_DIR__/venv/bin/python serve.py
+
+Restart=on-failure
+RestartSec=2
+
+# --- Sandboxing ---------------------------------------------------------
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+
+# read-only, NOT true. `true` makes /home invisible to the service — hiding the
+# checkout, the virtualenv and the SSH deploy key from the service that needs
+# all three, and failing at startup with a sandbox error that looks nothing
+# like its cause. (Crows, 2026-07-18.)
+ProtectHome=read-only
+
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6
+
+# The checkout root must be writable, not merely entries/ and artifacts/.
+#
+# builder.py renders into a staging directory (site.tmp) and swaps it into place
+# only after every page renders. That swap is `rmtree(site)` followed by
+# `rename(site.tmp, site)` — both of which create and remove directory entries
+# in the checkout root. Granting write to the subdirectories alone is not
+# enough; Crows' first publish failed with
+# "[Errno 30] Read-only file system: 'site.tmp'".
+#
+# .git/ is included by this, which publishing needs: sync -> add -> commit ->
+# push, with reset --hard on failure.
+#
+# Note, for Kino specifically: nothing irreplaceable is written here. The
+# records (entries/*.json) and covers (artifacts/*/) are all committed to git,
+# and the film itself lives on its host, never on this machine. A lost checkout
+# costs nothing an ordinary clone does not restore — unlike Lens, which holds
+# the only copy of each original.
+ReadWritePaths=__KINO_DIR__
+
+# The interpreter and installed packages stay read-only even so: the service
+# publishes films, and never has cause to rewrite its own venv.
+ReadOnlyPaths=__KINO_DIR__/venv
+
+[Install]
+WantedBy=multi-user.target
