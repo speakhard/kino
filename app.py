@@ -40,7 +40,6 @@ app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
 # set for the static build; this is the authoring env's copy.
 app.jinja_env.filters["runtime"] = runtime_display
 app.jinja_env.filters["title_of"] = display_title
-app.jinja_env.filters["host_label"] = hosts.label
 app.jinja_env.filters["date"] = lambda film, fmt="%B %-d, %Y": entry_date(film).strftime(fmt)
 
 
@@ -103,8 +102,7 @@ def published(entry_id):
     film = entry_store.find_entry(entry_id)
     if not film:
         return "Not found", 404
-    return render_template("published.html", film=film, site=site_config(),
-                           watch_url=hosts.watch_url(film["video"]))
+    return render_template("published.html", film=film, site=site_config())
 
 
 @app.route("/cover/<entry_id>/<name>")

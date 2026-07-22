@@ -13,11 +13,15 @@
  */
 
 :root {
-  --surround: #16171a;
+  /* The surround is the darkness of a theater, not neutral graphite: a very dark
+     warm charcoal with the faintest hint of oxblood, so the room feels like it
+     has velvet seats somewhere past the edge of the screen. The hairline lives
+     in the same warm dark. The amber accent and the warm inks are unchanged. */
+  --surround: #1b1517;
   --ink-1:    #ecebe9;   /* titles, primary */
   --ink-2:    #a8a6a2;   /* meta, secondary */
   --ink-3:    #6f6d69;   /* tertiary */
-  --hairline: #2b2c30;
+  --hairline: #342a2d;
   --accent:   #d99a5b;   /* the projector's warm note */
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --serif: Georgia, "Times New Roman", serif;
@@ -59,62 +63,35 @@ a:hover { color: var(--accent); }
   color: var(--ink-3);
 }
 
-/* --- The index: a column of films ---------------------------------------- */
+/* --- A publication: one film, the same block in the feed and at its permalink -
+ *
+ * The feed is a sequence of these; the permalink is one of them alone. Both
+ * render through the same macro (templates/_publication.html), so this one set
+ * of rules dresses both. The player is the primary object — no cover, no poster
+ * wall, nothing to click through to reach the film. */
 
-.film-card {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 1.25rem;
-  padding: 1.75rem 0;
-  border-top: 1px solid var(--hairline);
-}
-
-.film-card:first-child { border-top: none; padding-top: 0; }
-
-.film-cover img {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  background: #000;
-  border: 1px solid var(--hairline);
-}
-
-.film-detail h2 {
+.film-title {
   margin: 0 0 .35rem;
-  font-size: 1.15rem;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
-.film-detail h2 a { text-decoration: none; }
+.film-title a { text-decoration: none; }
+
+/* h1 on the permalink page (the film standing alone), h2 in the feed. */
+h1.film-title { font-size: 1.7rem; }
+h2.film-title { font-size: 1.3rem; }
 
 .film-meta {
-  margin: 0;
+  margin: 0 0 1.5rem;
   font-size: .8rem;
   letter-spacing: .02em;
   color: var(--ink-3);
 }
 
-.film-blurb {
-  margin: .6rem 0 0;
-  font-size: .95rem;
-  color: var(--ink-2);
-}
-
-/* --- A single film: the permalink page ----------------------------------- */
-
-.film h1 {
-  margin: 0 0 .35rem;
-  font-size: 1.7rem;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.film .film-meta { margin-bottom: 1.75rem; }
-
 .film-player {
   aspect-ratio: 16 / 9;
-  margin: 0 0 1.75rem;
+  margin: 0 0 1.5rem;
   background: #000;
   border: 1px solid var(--hairline);
 }
@@ -129,19 +106,15 @@ a:hover { color: var(--accent); }
 }
 
 .film-description p { margin: 0 0 1.1rem; }
+.film-description p:last-child { margin-bottom: 0; }
 
-.film-elsewhere {
-  margin: 1.5rem 0 0;
-  font-size: .85rem;
+/* In the feed, one screening gives way to the next across a hairline — the
+   divider between publications, like the gap between reels. */
+.film + .film {
+  margin-top: 2.75rem;
+  padding-top: 2.75rem;
+  border-top: 1px solid var(--hairline);
 }
-
-.film-elsewhere a {
-  color: var(--accent);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-}
-
-.film-elsewhere a:hover { border-bottom-color: var(--accent); }
 
 .film-nav {
   display: flex;
@@ -219,9 +192,4 @@ h1 {
   border-top: 1px solid var(--hairline);
   color: var(--ink-3);
   font-size: .8rem;
-}
-
-@media (max-width: 620px) {
-  .film-card { grid-template-columns: 1fr; }
-  .film-cover img { aspect-ratio: 16 / 9; }
 }

@@ -36,7 +36,6 @@
     <p class="catalogue-meta">
       <code>{{ film.id }}</code>
       · <span class="state state-{{ state }}">{{ states[state].label }}</span>
-      · {{ film.video | host_label }}
       {% if film | runtime %} · {{ film | runtime }}{% endif %}
     </p>
 

@@ -32,7 +32,6 @@
   <p class="published-links">
     <a href="{{ site.url }}">View the site</a>
     <a href="{{ site.url }}/f/{{ film.id }}/">View this film</a>
-    <a href="{{ watch_url }}">Watch on {{ film.video | host_label }}</a>
     <a href="{{ url_for('edit', entry_id=film.id) }}">Edit it</a>
   </p>
   <p class="hint">

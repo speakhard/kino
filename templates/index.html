@@ -1,23 +1,12 @@
 {% extends "base.html" %}
+{% from "_publication.html" import publication %}
 {% block content %}
 
+{# The feed is not a catalogue of films you click into — it is the sequence of
+   screenings itself. Each entry is a whole publication: title, date, player,
+   description. You can watch without ever leaving the stream. #}
 {% for film in films %}
-<article class="film-card">
-  <a class="film-cover" href="{{ '../' * depth }}f/{{ film.id }}/">
-    <img src="{{ '../' * depth }}covers/{{ film.id }}/card.jpg"
-         alt="{{ film | title_of }}" loading="lazy">
-  </a>
-  <div class="film-detail">
-    <h2><a href="{{ '../' * depth }}f/{{ film.id }}/">{{ film | title_of }}</a></h2>
-    <p class="film-meta">
-      {{ film | date }}
-      {% if film | runtime %}· {{ film | runtime }}{% endif %}
-    </p>
-    {% if film.description %}
-    <p class="film-blurb">{{ film.description }}</p>
-    {% endif %}
-  </div>
-</article>
+{{ publication(film, depth) }}
 {% else %}
 <p class="empty">Nothing here yet.</p>
 {% endfor %}

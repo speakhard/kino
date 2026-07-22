@@ -48,9 +48,10 @@ def _env() -> Environment:
     env.filters["date"] = lambda f, fmt="%B %-d, %Y": entry_date(f).strftime(fmt)
     env.filters["runtime"] = runtime_display
     env.filters["title_of"] = display_title
+    # The public build knows one thing about the host: how to embed its player.
+    # watch_url() and label() stay in the adapter, but no public page links out
+    # to a host or names one — the film lives here, and only here.
     env.filters["embed"] = hosts.embed_url
-    env.filters["watch"] = hosts.watch_url
-    env.filters["host_label"] = hosts.label
     return env
 
 
@@ -156,8 +157,10 @@ def verify(site_dir: Path, permalinked, listed) -> None:
     index_html = index.read_text(encoding="utf-8")
 
     for film in listed:
-        if film["id"] not in index_html:
-            raise BuildError(f"{film['id']} is listed but absent from the index")
+        # The feed is a stream of players now, not a poster wall: a listed film
+        # must carry its embed in the index itself, watchable without leaving.
+        if hosts.embed_url(film["video"]) not in index_html:
+            raise BuildError(f"{film['id']} is listed but its player is absent from the feed")
 
     for film in permalinked:
         page = site_dir / "f" / film["id"] / "index.html"
@@ -173,6 +176,20 @@ def verify(site_dir: Path, permalinked, listed) -> None:
 
         if not (site_dir / "covers" / film["id"] / COVER_NAME).exists():
             raise BuildError(f"{film['id']} has no cover image in the site")
+
+    # The host stays invisible. No public page may name a provider or link out to
+    # a film's home on its host. The embed URL necessarily contains the player
+    # domain — that is the player itself, the one sanctioned appearance — but an
+    # outbound "Watch on …" link or a bare watch URL is a leak, and fails the
+    # build rather than shipping.
+    watch_urls = [hosts.watch_url(film["video"]) for film in permalinked]
+    for page in sorted(site_dir.rglob("*.html")):
+        text = page.read_text(encoding="utf-8")
+        if "Watch on" in text:
+            raise BuildError(f"{page.relative_to(site_dir)} names an external host ('Watch on …')")
+        for watch in watch_urls:
+            if watch in text:
+                raise BuildError(f"{page.relative_to(site_dir)} links out to the host ({watch})")
 
 
 if __name__ == "__main__":
