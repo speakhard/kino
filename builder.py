@@ -18,6 +18,7 @@ import shutil
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
+from markupsafe import escape
 
 import entries as entry_store
 import hosts
@@ -156,10 +157,16 @@ def verify(site_dir: Path, permalinked, listed) -> None:
 
     index_html = index.read_text(encoding="utf-8")
 
+    def embedded(video, html) -> bool:
+        # The embed URL carries query parameters, so its `&`s render as `&amp;`
+        # in the page. Compare against the escaped form the template actually
+        # emits, not the raw URL, or every player would read as missing.
+        return str(escape(hosts.embed_url(video))) in html
+
     for film in listed:
         # The feed is a stream of players now, not a poster wall: a listed film
         # must carry its embed in the index itself, watchable without leaving.
-        if hosts.embed_url(film["video"]) not in index_html:
+        if not embedded(film["video"], index_html):
             raise BuildError(f"{film['id']} is listed but its player is absent from the feed")
 
     for film in permalinked:
@@ -171,7 +178,7 @@ def verify(site_dir: Path, permalinked, listed) -> None:
 
         # The one thing a film page must carry: a way to watch the film. If the
         # embed URL is missing the page is decoration, however well it renders.
-        if hosts.embed_url(film["video"]) not in html:
+        if not embedded(film["video"], html):
             raise BuildError(f"{film['id']} renders no video embed")
 
         if not (site_dir / "covers" / film["id"] / COVER_NAME).exists():

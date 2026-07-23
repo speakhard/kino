@@ -19,10 +19,19 @@ and should be reconsidered rather than extended.
 """
 from __future__ import annotations
 
+# The embed URL is the one place Kino's opinion about the player lives. For
+# Vimeo it strips the provider's own furniture — title, byline, portrait, the
+# Staff-Pick badge — turns on do-not-track, and tints the controls a soft warm
+# off-white so they recede into the page instead of announcing Vimeo. Two things
+# it deliberately does NOT set, because Vimeo exposes no embed parameter for
+# them: how long the controls linger before auto-hiding (fixed, untunable), and
+# the post-play recommendation screen (suppressible only in the video's own
+# settings on the host, or one day by a Kino end screen of our own).
 HOSTS = {
     "vimeo": {
         "label": "Vimeo",
-        "embed": "https://player.vimeo.com/video/{id}",
+        "embed": ("https://player.vimeo.com/video/{id}"
+                  "?title=0&byline=0&portrait=0&badge=0&dnt=1&color=ede6d8"),
         "watch": "https://vimeo.com/{id}",
     },
     "youtube": {

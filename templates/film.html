@@ -3,10 +3,12 @@
 {% block title %}{{ film | title_of }} — {{ site.name }}{% endblock %}
 {% block content %}
 
-{# The canonical permalink. Same presentation as the feed — the same macro — so
-   arriving here is not a different experience, just this one publication with
-   the whole stream stripped away and its neighbours reachable below. #}
-{{ publication(film, depth, heading='h1', linked=False, withdrawn=withdrawn) }}
+{# The canonical permalink: the same macro as the feed, but asked for the whole
+   record (full=True). The feed shows player, title and year — enough to watch;
+   here the film stands alone and carries its full date, its caption and its
+   neighbours. This is the page you read about a film on; the feed is where you
+   watch it. #}
+{{ publication(film, depth, heading='h1', linked=False, full=True, withdrawn=withdrawn) }}
 
 <nav class="film-nav">
   {% if newer %}<a href="../{{ newer.id }}/">← {{ newer | title_of }}</a>{% endif %}

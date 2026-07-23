@@ -14,14 +14,17 @@
 
 :root {
   /* The surround is the darkness of a theater, not neutral graphite: a very dark
-     warm charcoal with the faintest hint of oxblood, so the room feels like it
-     has velvet seats somewhere past the edge of the screen. The hairline lives
-     in the same warm dark. The amber accent and the warm inks are unchanged. */
-  --surround: #1b1517;
+     warm charcoal carrying a clear note of oxblood now, not the faint one it
+     had — enough that the room reads unmistakably as a cinema with velvet seats
+     and curtains somewhere past the edge of the screen, without ever becoming a
+     red page. The hairline is the velvet itself: a warm oxblood-brown, the
+     dividers and the frame around each player reading like a rope between rows
+     rather than a cold rule. The amber accent and the inks are unchanged. */
+  --surround: #221513;
   --ink-1:    #ecebe9;   /* titles, primary */
   --ink-2:    #a8a6a2;   /* meta, secondary */
   --ink-3:    #6f6d69;   /* tertiary */
-  --hairline: #342a2d;
+  --hairline: #3d2a24;
   --accent:   #d99a5b;   /* the projector's warm note */
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --serif: Georgia, "Times New Roman", serif;
@@ -50,9 +53,16 @@ a:hover { color: var(--accent); }
   border-bottom: 1px solid var(--hairline);
 }
 
+/* The wordmark is a title card, not a UI label: the serif Kino already sets its
+   captions in, in caps, widely tracked and at a light-normal weight — engraved
+   and timeless rather than the semibold sans it was. (Case and the underlying
+   letter-spacing come from commons; this widens the tracking and changes the
+   face and weight.) */
 .wordmark {
+  font-family: var(--serif);
   font-size: 1.3rem;
-  font-weight: 600;
+  font-weight: 400;
+  letter-spacing: .30em;
   color: var(--ink-1);
 }
 
@@ -70,8 +80,20 @@ a:hover { color: var(--accent); }
  * of rules dresses both. The player is the primary object — no cover, no poster
  * wall, nothing to click through to reach the film. */
 
+/* The player leads — it is the object on the page. Title and year are a caption
+   pinned just beneath it, close enough to read as a label rather than a heading
+   floating on its own. */
+.film-player {
+  aspect-ratio: 16 / 9;
+  margin: 0 0 .85rem;
+  background: #000;
+  border: 1px solid var(--hairline);
+}
+
+.film-player iframe { width: 100%; height: 100%; display: block; }
+
 .film-title {
-  margin: 0 0 .35rem;
+  margin: 0 0 .1rem;
   font-weight: 600;
   line-height: 1.2;
 }
@@ -83,22 +105,15 @@ h1.film-title { font-size: 1.7rem; }
 h2.film-title { font-size: 1.3rem; }
 
 .film-meta {
-  margin: 0 0 1.5rem;
+  margin: 0;
   font-size: .8rem;
   letter-spacing: .02em;
   color: var(--ink-3);
 }
 
-.film-player {
-  aspect-ratio: 16 / 9;
-  margin: 0 0 1.5rem;
-  background: #000;
-  border: 1px solid var(--hairline);
-}
-
-.film-player iframe { width: 100%; height: 100%; display: block; }
-
+/* The caption appears only on the permalink, set apart from the year above it. */
 .film-description {
+  margin-top: 1.6rem;
   font-family: var(--serif);
   font-size: 1.05rem;
   line-height: 1.65;
@@ -129,7 +144,7 @@ h2.film-title { font-size: 1.3rem; }
 
 /* A withdrawn film keeps its address and says so, rather than 404ing. */
 .withdrawn {
-  margin: 0 0 1.5rem;
+  margin: 1.1rem 0 0;
   padding-left: .9rem;
   border-left: 2px solid var(--accent);
   font-size: .9rem;

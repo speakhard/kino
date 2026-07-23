@@ -1,34 +1,26 @@
-{# One publication, rendered identically wherever it appears.
+{# One publication. The player comes first — it is the object; everything else
+   is a label beneath it.
 
-   The feed IS a sequence of publications, and the permalink is one publication
-   standing alone — so both render through this single macro. The only
-   differences a caller may ask for are cosmetic: the heading level, and whether
-   the title links to its own permalink (it does in the feed, it doesn't on the
-   page that already is that permalink).
+   Kino is a place where films are shown, not a catalogue of films you read
+   about, and the feed and the permalink are two views of that with different
+   appetites for detail:
 
-   The player is the primary object. Kino embeds a URL supplied by the host
-   adapter (hosts.py) and shows nothing of where the bytes actually live — no
-   provider name, no "watch elsewhere" link. As far as the page is concerned the
-   film lives here. `referrerpolicy` sends Kino's origin so a domain-restricted
-   host can recognise its own publication; `loading="lazy"` keeps a long feed of
-   players cheap until each is scrolled into view. #}
-{% macro publication(film, depth, heading='h2', linked=True, withdrawn=False) %}
+     feed (full=False)   player · title · year          — for watching
+     permalink (full)    player · title · date · caption — the whole record
+
+   So both render through this one macro, and `full` is the switch. The feed is
+   deliberately spare: no caption, no exact date, nothing to read instead of
+   watch. The permalink is where a film stands alone and carries everything.
+
+   The player embeds a URL supplied by the host adapter (hosts.py) and shows
+   nothing of where the bytes actually live — no provider name, no "watch
+   elsewhere" link. As far as the page is concerned the film lives here.
+   `referrerpolicy` sends Kino's origin so a domain-restricted host can
+   recognise its own publication; `loading="lazy"` keeps a long feed of players
+   cheap until each is scrolled into view. #}
+{% macro publication(film, depth, heading='h2', linked=True, full=False, withdrawn=False) %}
 {% set base = '../' * depth %}
 <article class="film">
-
-  <{{ heading }} class="film-title">
-    {% if linked %}<a href="{{ base }}f/{{ film.id }}/">{{ film | title_of }}</a>{% else %}{{ film | title_of }}{% endif %}
-  </{{ heading }}>
-
-  <p class="film-meta">
-    {{ film | date }}{% if film | runtime %} · {{ film | runtime }}{% endif %}
-  </p>
-
-  {% if withdrawn %}
-  {# The permalink is a promise. A withdrawn film keeps its address and says
-     plainly what happened, rather than 404ing on someone who linked to it. #}
-  <p class="withdrawn">This film has been withdrawn from the publication.</p>
-  {% endif %}
 
   <div class="film-player">
     <iframe src="{{ film.video | embed }}"
@@ -39,7 +31,25 @@
             loading="lazy"></iframe>
   </div>
 
-  {% if film.description %}
+  <{{ heading }} class="film-title">
+    {% if linked %}<a href="{{ base }}f/{{ film.id }}/">{{ film | title_of }}</a>{% else %}{{ film | title_of }}{% endif %}
+  </{{ heading }}>
+
+  {# The feed shows only the year; the exact publication date belongs to the
+     permalink, alongside the runtime and the rest of the record. #}
+  <p class="film-meta">
+    {% if full %}{{ film | date }}{% if film | runtime %} · {{ film | runtime }}{% endif %}{% else %}{{ film | date('%Y') }}{% endif %}
+  </p>
+
+  {% if withdrawn %}
+  {# The permalink is a promise. A withdrawn film keeps its address and says
+     plainly what happened, rather than 404ing on someone who linked to it. #}
+  <p class="withdrawn">This film has been withdrawn from the publication.</p>
+  {% endif %}
+
+  {# The caption lives only on the permalink — the feed is for watching, not
+     reading. #}
+  {% if full and film.description %}
   <div class="film-description">
     {% for paragraph in film.description.split('\n\n') %}
     {% if paragraph.strip() %}<p>{{ paragraph }}</p>{% endif %}
