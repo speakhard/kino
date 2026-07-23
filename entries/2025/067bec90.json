@@ -1,0 +1,19 @@
+{
+  "id": "067bec90",
+  "created": "2025-04-23T00:00:00-07:00",
+  "title": "Flynn Rounds the Corner",
+  "description": "Show with a 16mm Bolex H16",
+  "runtime": 43,
+  "visibility": "public",
+  "publish_at": null,
+  "feed": {
+    "pinned": false,
+    "rank": null,
+    "sequence": null
+  },
+  "video": {
+    "host": "vimeo",
+    "id": "1212341451"
+  },
+  "cover": "cover.jpg"
+}
