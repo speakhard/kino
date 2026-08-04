@@ -1,7 +1,9 @@
 {
   "commons_spec": "0.2",
   "profile": "kino",
-
+  "capabilities": [
+    "syndication"
+  ],
   "name": "Kino",
   "description": "Films worth watching.",
   "author": "Josh Bernhard",
@@ -11,17 +13,17 @@
   "medium": "film",
   "part_of": "the-commons",
   "feed": true,
-
   "nav": [
-    { "label": "Archive", "href": "archive/" }
+    {
+      "label": "Archive",
+      "href": "archive/"
+    }
   ],
-
   "branding": {
     "tagline": "Films worth watching.",
     "accent": "#d99a5b",
     "typography": "ink"
   },
-
   "footer": {
     "copyright": "Josh Bernhard",
     "commons": true
