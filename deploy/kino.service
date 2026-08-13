@@ -28,6 +28,25 @@ WorkingDirectory=__KINO_DIR__
 
 Environment=KINO_HOST=__TAILSCALE_IP__
 Environment=KINO_PORT=11914
+
+# Git over SSH, with connection multiplexing off.
+#
+# The managed tailnet SSH config sets `ControlMaster auto` for `Host *` (added
+# 2026-08-04). Multiplexing needs an AF_UNIX socket, which the
+# RestrictAddressFamilies line below does not permit, so publishing dies at the
+# first `git fetch` with "muxclient: socket(): Address family not supported by
+# protocol" — an error naming neither ssh's config nor this unit's sandbox.
+# Found in Lens on 2026-08-12; the same break was latent here.
+#
+# Turned off rather than permitting AF_UNIX: ProtectHome=read-only also leaves
+# ~/.ssh/cm unwritable, so widening the address family alone only changes the
+# error. One fetch and one push per publish needs no shared connection.
+#
+# The quotes are load-bearing. Environment= splits on whitespace, so the
+# unquoted form would parse as GIT_SSH_COMMAND=ssh plus three malformed
+# assignments, and multiplexing would remain on.
+Environment="GIT_SSH_COMMAND=ssh -o ControlMaster=no -o ControlPath=none"
+
 ExecStart=__KINO_DIR__/venv/bin/python serve.py
 
 Restart=on-failure
