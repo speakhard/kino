@@ -59,6 +59,16 @@ a:hover { color: var(--accent); }
    isolation, and a second typeface arguing with the titles in practice. Case
    and tracking come from commons. */
 .wordmark {
+  /* Kino, not KINO. commons.css sets the shared wordmark in caps at .18em;
+     both are overridden here rather than there, because Crows and Lens want
+     the caps and this is Kino's departure to make.
+
+     The tracking goes with the case. Wide letter-spacing is a convention for
+     capitals, where it opens up otherwise cramped forms; applied to lower-case
+     it just pulls a word apart. A hair is kept so the wordmark still reads as
+     set rather than typed. */
+  text-transform: none;
+  letter-spacing: .02em;
   font-size: 1.3rem;
   font-weight: 600;
   color: var(--ink-1);
