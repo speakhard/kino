@@ -127,6 +127,28 @@ def revise(entry_id, changes, entries_root=None, artifacts_root=None, git=True):
         if not allowed:
             raise ValueError(reason)
 
+    revised = dict(entry)
+    revised["title"] = title.strip()
+    revised["description"] = (description or "").strip()
+    revised["video"] = {"host": video_host, "id": str(video_id).strip()}
+
+    if "runtime" in changes:
+        revised["runtime"] = changes["runtime"]
+    if "visibility" in changes:
+        revised["visibility"] = changes["visibility"]
+
+    cover = changes.get("cover")
+    replacing_cover = bool(cover is not None and getattr(cover, "filename", ""))
+
+    # Opening the form and saving it unchanged is an ordinary thing to do, and
+    # it is not a failure. It used to be reported as one: the record was
+    # rewritten byte-identically, git found nothing staged, `git commit` exited
+    # non-zero, and the transaction rolled back announcing "Revision failed;
+    # nothing was changed" — which was true, and read as though something had
+    # broken. Deciding here means no sync, no rebuild and no push either.
+    if revised == entry and not replacing_cover:
+        return revised, False
+
     if git:
         distributor.sync()
     original_head = distributor.current_head() if git else None
@@ -136,18 +158,7 @@ def revise(entry_id, changes, entries_root=None, artifacts_root=None, git=True):
     committed = False
 
     try:
-        revised = dict(entry)
-        revised["title"] = title.strip()
-        revised["description"] = (description or "").strip()
-        revised["video"] = {"host": video_host, "id": str(video_id).strip()}
-
-        if "runtime" in changes:
-            revised["runtime"] = changes["runtime"]
-        if "visibility" in changes:
-            revised["visibility"] = changes["visibility"]
-
-        cover = changes.get("cover")
-        if cover is not None and getattr(cover, "filename", ""):
+        if replacing_cover:
             cover_pipeline.save_cover(cover, artifact_dir)
 
         path = entry_store.save_entry(revised, entries_root)
@@ -160,7 +171,7 @@ def revise(entry_id, changes, entries_root=None, artifacts_root=None, git=True):
             committed = True
             distributor.push()
 
-        return revised
+        return revised, True
 
     except Exception as error:
         _restore_record(original_head, committed, entry, before, entries_root,
@@ -176,8 +187,12 @@ def withdraw(entry_id, entries_root=None, artifacts_root=None, git=True):
     withdrawn. The video is not touched, because Kino does not own it. Whether
     it remains watchable on its host is the publisher's business, set there.
     """
-    return revise(entry_id, {"visibility": visibility.ARCHIVED},
-                  entries_root=entries_root, artifacts_root=artifacts_root, git=git)
+    # Withdrawing an already-archived film changes nothing, and revise now says
+    # so rather than failing; the record is returned either way.
+    revised, _changed = revise(entry_id, {"visibility": visibility.ARCHIVED},
+                               entries_root=entries_root,
+                               artifacts_root=artifacts_root, git=git)
+    return revised
 
 
 def erase(entry_id, entries_root=None, artifacts_root=None, git=True):

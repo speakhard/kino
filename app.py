@@ -158,8 +158,11 @@ def edit(entry_id):
             changes["runtime"] = runtime
 
         try:
-            revise(entry_id, changes)
-            return redirect(url_for("catalogue", notice=f"Revised {entry_id}."))
+            _revised, changed = revise(entry_id, changes)
+            return redirect(url_for(
+                "catalogue",
+                notice=f"Revised {entry_id}." if changed
+                else "Nothing to change — the film was saved exactly as it was."))
         except (ValueError, PublishError) as failure:
             error = str(failure)
             film = entry_store.find_entry(entry_id)

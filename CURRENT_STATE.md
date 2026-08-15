@@ -11,16 +11,16 @@ docs:
   - docs/ARCHITECTURE.md
 git:
   branch: main
-  head: 1bec571
-  head_subject: Publish film a7d306ed
+  head: e57b9c4
+  head_subject: 'One face for Kino: the wordmark returns to the sans'
   dirty: 1
   ahead: 0
   behind: 0
-  observed_at: '2026-07-25T23:59:05Z'
+  observed_at: '2026-08-15T00:50:05Z'
 resume:
   directory: /home/fs42/Development/kino
   command: cd /home/fs42/Development/kino && claude
-updated_at: '2026-08-01T19:57:37Z'
+updated_at: '2026-08-15T00:50:05Z'
 provenance:
   status:
     source: human
@@ -39,7 +39,7 @@ provenance:
     at: '2026-07-25T23:59:05Z'
   git:
     source: observed
-    at: '2026-07-25T23:59:05Z'
+    at: '2026-08-15T00:50:05Z'
   next_task:
     source: model
     at: '2026-07-25T23:59:05Z'
@@ -60,11 +60,12 @@ risks:
   - Vimeo API rate limits undocumented above 200 req/min
 estimated_remaining: ~1 session
 summary: 'Currently on M3 — configurable player themes. Most recently: Scoped the theme model. Outstanding: Settings migration not written.'
+latest_session: 20260815T005005Z-4db0af36.md
 ---
 
 # kino — Current State
 
-_Generated 2026-08-01T19:57:37Z. The front-matter above is the source of truth; this body is rendered from it._
+_Generated 2026-08-15T00:50:05Z. The front-matter above is the source of truth; this body is rendered from it._
 
 | | |
 |---|---|
@@ -72,9 +73,9 @@ _Generated 2026-08-01T19:57:37Z. The front-matter above is the source of truth; 
 | **Current milestone** | M3 — configurable player themes |
 | **Next milestone** | M4 — syndication to Commons |
 | **Branch** | main |
-| **HEAD** | 1bec571 — Publish film a7d306ed |
+| **HEAD** | e57b9c4 — One face for Kino: the wordmark returns to the sans |
 | **Working tree** | 1 changed |
-| **Observed** | 2026-07-25T23:59:05Z |
+| **Observed** | 2026-08-15T00:50:05Z |
 
 ## Today's goal
 
@@ -144,8 +145,10 @@ Do not revisit completed architectural decisions unless necessary.
 | goal | human | 2026-07-25T23:59:05Z | — |
 | definition_of_done | human | 2026-07-25T23:59:05Z | — |
 | docs | human | 2026-07-25T23:59:05Z | — |
-| git | observed | 2026-07-25T23:59:05Z | — |
+| git | observed | 2026-08-15T00:50:05Z | — |
 | next_task | model | 2026-07-25T23:59:05Z | claude-code@2.1.220 |
 | risks | model | 2026-07-25T23:59:05Z | claude-code@2.1.220 |
 | estimated_remaining | model | 2026-07-25T23:59:05Z | claude-code@2.1.220 |
 | summary | recovered | 2026-08-01T19:57:37Z | — |
+
+_Latest session log: `20260815T005005Z-4db0af36.md`_
