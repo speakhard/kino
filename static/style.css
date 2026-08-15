@@ -53,16 +53,14 @@ a:hover { color: var(--accent); }
   border-bottom: 1px solid var(--hairline);
 }
 
-/* The wordmark is a title card, not a UI label: the serif Kino already sets its
-   captions in, in caps, widely tracked and at a light-normal weight — engraved
-   and timeless rather than the semibold sans it was. (Case and the underlying
-   letter-spacing come from commons; this widens the tracking and changes the
-   face and weight.) */
+/* One face for the publication: the wordmark is set in the same sans as the
+   film titles beneath it, which is what the authoring service has been showing
+   all along. It spent a while in Georgia at .30em — engraved and timeless in
+   isolation, and a second typeface arguing with the titles in practice. Case
+   and tracking come from commons. */
 .wordmark {
-  font-family: var(--serif);
   font-size: 1.3rem;
-  font-weight: 400;
-  letter-spacing: .30em;
+  font-weight: 600;
   color: var(--ink-1);
 }
 
