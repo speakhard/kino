@@ -1,0 +1,19 @@
+{
+  "id": "f85244c8",
+  "created": "2026-08-15T00:00:00-07:00",
+  "title": "love bug new bev",
+  "description": "",
+  "runtime": 44,
+  "visibility": "public",
+  "publish_at": null,
+  "feed": {
+    "pinned": false,
+    "rank": null,
+    "sequence": null
+  },
+  "video": {
+    "host": "vimeo",
+    "id": "1218469206"
+  },
+  "cover": "cover.jpg"
+}
