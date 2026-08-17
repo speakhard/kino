@@ -83,3 +83,19 @@ main {
 
 .footer-line a { text-decoration: none; }
 .footer-line a:hover { text-decoration: underline; }
+
+/* The publication byline — who publishes this publication (PROTOCOL.md §2
+ * `publishers`). Rendered only when a publication declares them, so a
+ * publication that says nothing is visually unchanged.
+ *
+ * Deliberately quiet: this is provenance, not a headline. It sits above the
+ * work at the same measure, in the muted colour the footer uses, because a
+ * reader looking for the work should meet the work first. A publication that
+ * wants it louder — or gone — restyles it in its own style.css. */
+.publication-byline {
+  margin: 0 0 2rem;
+  font-size: .85rem;
+  opacity: .65;
+}
+
+.publication-byline a { color: inherit; }

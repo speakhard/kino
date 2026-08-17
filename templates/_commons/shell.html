@@ -22,6 +22,20 @@
 {% set base = '../' * depth %}
 {% set brand = site.get('branding', {}) %}
 {% set foot = site.get('footer', {}) %}
+{# The people who publish this publication, as identity URLs (PROTOCOL.md §2).
+   Each entry is {url, name}: `url` is the claim and is authoritative; `name` is
+   a display fallback only — the identity URL names itself, and a reader that
+   fetches it uses what it finds there. Absent means this publication has not
+   adopted the publisher relationship, and every block below renders nothing, so
+   a publication that says nothing looks exactly as it did.
+
+   Decision record: reports/2026-08-17-commons-identity-publication-relation-audit.md
+   supersedes the earlier `rel="me"` proposal. `rel=me` is identity ↔ identity
+   only; it is never a publishership claim. This is the reciprocal half — the
+   publication naming its publishers — and it needs no Commons-specific
+   invention: Schema.org `publisher` and microformats `p-author` both already
+   mean exactly this. #}
+{% set publishers = site.get('publishers', []) %}
 {# canonical_url is the manifest field (PROTOCOL.md §2); early publications used
    `url`, so fall back to it and neither breaks. #}
 {% set canon = site.get('canonical_url') or site.get('url') %}
@@ -38,6 +52,28 @@
 <meta property="og:description" content="{{ site.description }}">
 <meta property="og:url" content="{{ canon }}">
 {% if brand.get('og_image') %}<meta property="og:image" content="{{ canon }}/{{ brand.og_image }}">{% endif %}
+{% endif %}
+{% if publishers and canon %}
+{# The same publisher claim in Schema.org, for consumers that read JSON-LD
+   rather than microformats. `publisher` is the standard property and its
+   direction is publication → person; the identity page states the converse with
+   JSON-LD `@reverse`. Emitting both means neither vocabulary is privileged and
+   the claim is legible to search engines as well as to a Commons reader. #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CreativeWorkSeries",
+  "@id": {{ canon | tojson }},
+  "name": {{ site.name | tojson }},
+  "url": {{ canon | tojson }},
+  "publisher": [
+    {%- for p in publishers %}
+    { "@type": "Person", "@id": {{ p.url | tojson }}, "url": {{ p.url | tojson }}
+      {%- if p.get('name') %}, "name": {{ p.name | tojson }}{% endif %} }{{ "," if not loop.last }}
+    {%- endfor %}
+  ]
+}
+</script>
 {% endif %}
 {% if brand.get('favicon') %}<link rel="icon" href="{{ base }}{{ brand.favicon }}">{% endif %}
 {% if brand.get('accent') %}<style>:root { --accent: {{ brand.accent }}; }</style>{% endif %}
@@ -61,7 +97,31 @@
   {% endif %}
 </header>
 
-<main>
+{# When a publication declares its publishers, `main` becomes the h-feed and the
+   byline carries them as `p-author h-card` — the microformats half of the same
+   claim the JSON-LD above makes. The two MUST agree; a test asserts it.
+
+   `p-author` has to nest inside the `h-feed` element to be a property of it,
+   which is why the byline lives here and not in the footer. It is rendered
+   visibly rather than hidden: a person should be able to see who a publication
+   says publishes it, because that claim is one half of what makes publishership
+   verifiable, and a claim only a parser can read is a claim a reader cannot
+   check. #}
+<main{% if publishers %} class="h-feed"{% endif %}>
+{% if publishers %}
+<p class="publication-byline">
+  {%- if canon %}<a class="u-url" href="{{ canon }}"><data class="p-name" value="{{ site.name }}"></data></a>{% endif %}
+  Published by
+  {%- for p in publishers %}
+  {%- if not loop.first %}{{ " and " if loop.last else ", " }}{% endif %}
+  {#- `h-card` on an anchor takes its `u-url` implicitly from href (mf2 implied
+      properties). Writing `u-url` here as well would additionally make each
+      publisher a `url` of the enclosing h-feed, so the publication would claim
+      three addresses — caught by parsing the output rather than reading it. -#}
+  <a class="p-author h-card" href="{{ p.url }}">{{ p.get('name') or p.url }}</a>
+  {%- endfor %}
+</p>
+{% endif %}
 {% block content %}{% endblock %}
 </main>
 
