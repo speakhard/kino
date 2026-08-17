@@ -71,12 +71,15 @@ def publish(*, title, description="", video_host=hosts.DEFAULT_HOST, video_id,
     try:
         cover_pipeline.save_cover(cover, artifact_dir)
 
+        _site = builder.site_config()
+        _base = (_site.get("canonical_url") or _site.get("url") or "").rstrip("/")
         entry = build_entry(
             title=title, description=description,
             video={"host": video_host, "id": video_id},
             cover=cover_pipeline.COVER_NAME, runtime=runtime,
             entry_id=entry_id,
             created=created or datetime.now(timezone.utc).astimezone(),
+            guid=f"{_base}/f/{entry_id}/" if entry_id else None,
         )
         entry_path = entry_store.save_entry(entry, entries_root)
 

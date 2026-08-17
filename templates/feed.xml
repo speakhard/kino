@@ -24,7 +24,9 @@
   <entry>
     <title>{{ film | title_of }}</title>
     <link href="{{ site.url }}/f/{{ film.id }}/"/>
-    <id>{{ site.url }}/f/{{ film.id }}/</id>
+    {#- The identity, not the address. <link> above moves if the publication is
+        rehosted; this must not. -#}
+    <id>{{ film.guid }}</id>
     <updated>{{ film.created }}</updated>
     {% if film.description %}<summary>{{ film.description }}</summary>{% endif %}
   </entry>

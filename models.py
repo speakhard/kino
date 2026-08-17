@@ -79,7 +79,8 @@ def slugify(value: str) -> str:
 
 
 def build_entry(*, title, description, video, cover, runtime=None,
-                entry_id=None, created=None, visibility="public") -> dict:
+                entry_id=None, created=None, visibility="public",
+                guid=None) -> dict:
     """Assemble a Film record.
 
     `video` is {host, id} and nothing more. `cover` is the stored filename —
@@ -87,8 +88,16 @@ def build_entry(*, title, description, video, cover, runtime=None,
     """
     created = created or datetime.now(timezone.utc).astimezone()
 
+    entry_id = entry_id or new_id()
+
     return {
-        "id": entry_id or new_id(),
+        "id": entry_id,
+        # Durable feed identity — distinct from `id` (which addresses this film
+        # inside the publication) and from the canonical URL (where it can be
+        # fetched today, and which moves if the publication is rehosted). This
+        # is what a subscribed reader already holds; recomputing it after a move
+        # would present the archive as new work (PROTOCOL.md §8.1).
+        "guid": guid or "",
         "created": created.isoformat(),
         "title": (title or "").strip(),
         "description": (description or "").strip(),

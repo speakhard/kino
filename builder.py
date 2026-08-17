@@ -145,6 +145,19 @@ def build(entries_root=None, artifacts_root=None) -> None:
 
 
 def verify(site_dir: Path, permalinked, listed) -> None:
+    # Every object must carry a stored feed identity. Refused at build rather
+    # than computed from the current canonical URL, because that fallback is
+    # right until the publication moves and then silently reissues the identity
+    # of everything that lacked one — re-delivering the archive to every
+    # subscriber (PROTOCOL.md §8.1).
+    missing = [e["id"] for e in listed if not (e.get("guid") or "").strip()]
+    if missing:
+        raise BuildError(
+            "objects with no stored feed identity (guid): "
+            + ", ".join(missing[:5])
+            + " — backfill from the object's current canonical URL before building"
+        )
+
     """Assert a built site is present and complete; raise on any gap.
 
     A publication with no films is a valid state, not a failure — it is what a
