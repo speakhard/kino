@@ -5,7 +5,21 @@
   <link href="{{ site.url }}/feed.xml" rel="self"/>
   <link href="{{ site.url }}"/>
   <id>{{ site.url }}/</id>
-  <author><name>{{ site.author }}</name></author>
+{# Who publishes this publication. Atom has carried a URI for its author
+   since RFC 4287 §3.2.2 and these feeds simply never emitted one, so a
+   consumer could read the name and had no way to reach the person. The URI
+   is the identity (PROTOCOL.md §2 `publishers`), and it is the half of
+   reciprocal verification a reader checks against the identity's own claim.
+
+   Decision record: reports/2026-08-17-commons-identity-publication-relation-audit.md.
+   Nothing here is a Commons invention — `atom:author/atom:uri` already means
+   exactly this, and a feed reader that ignores it is unaffected.
+
+   `site.author` remains as the display name when no publishers are declared,
+   so a publication that has not adopted the relationship is unchanged. -#}
+{% for p in site.get('publishers', []) %}  <author><name>{{ p.get('name') or p.url }}</name><uri>{{ p.url }}</uri></author>
+{% endfor %}{% if not site.get('publishers') %}  <author><name>{{ site.author }}</name></author>
+{% endif %}
 {% for film in films %}
   <entry>
     <title>{{ film | title_of }}</title>

@@ -109,17 +109,19 @@
    check. #}
 <main{% if publishers %} class="h-feed"{% endif %}>
 {% if publishers %}
+{#- Whitespace here is content, not formatting: the separators between names are
+    the sentence. Written on one line per part with explicit spacing, because
+    Jinja's whitespace control silently ate the space after "by" when this was
+    laid out for readability — and "Published byJosh Bernhard" is the kind of
+    defect that survives review and not a parser.
+
+    `h-card` on an anchor takes its `u-url` implicitly from href (mf2 implied
+    properties). Writing `u-url` here as well would additionally make each
+    publisher a `url` of the enclosing h-feed, so the publication would claim
+    three addresses — caught by parsing the output rather than reading it. -#}
 <p class="publication-byline">
-  {%- if canon %}<a class="u-url" href="{{ canon }}"><data class="p-name" value="{{ site.name }}"></data></a>{% endif %}
-  Published by
-  {%- for p in publishers %}
-  {%- if not loop.first %}{{ " and " if loop.last else ", " }}{% endif %}
-  {#- `h-card` on an anchor takes its `u-url` implicitly from href (mf2 implied
-      properties). Writing `u-url` here as well would additionally make each
-      publisher a `url` of the enclosing h-feed, so the publication would claim
-      three addresses — caught by parsing the output rather than reading it. -#}
-  <a class="p-author h-card" href="{{ p.url }}">{{ p.get('name') or p.url }}</a>
-  {%- endfor %}
+{%- if canon %}<a class="u-url" href="{{ canon }}"><data class="p-name" value="{{ site.name }}"></data></a>{% endif -%}
+Published by {% for p in publishers %}{% if not loop.first %}{{ " and " if loop.last else ", " }}{% endif %}<a class="p-author h-card" href="{{ p.url }}">{{ p.get('name') or p.url }}</a>{% endfor %}
 </p>
 {% endif %}
 {% block content %}{% endblock %}

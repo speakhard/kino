@@ -4,9 +4,15 @@
   "capabilities": [
     "syndication"
   ],
-  "name": "Kino",
+  "name": "Filmed",
   "description": "Films worth watching.",
   "author": "Josh Bernhard",
+  "publishers": [
+    {
+      "url": "https://thecommons.pub/josh",
+      "name": "Josh Bernhard"
+    }
+  ],
   "url": "https://kino.joshbernhard.com",
   "canonical_url": "https://kino.joshbernhard.com",
   "generator": "Kino",

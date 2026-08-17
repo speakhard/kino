@@ -140,7 +140,7 @@ def build(entries_root=None, artifacts_root=None) -> None:
         shutil.rmtree(STAGING_DIR, ignore_errors=True)
         raise
 
-    print(f"Built Kino: {len(listed)} film(s) listed, "
+    print(f"Built {site.get('name', 'Kino')}: {len(listed)} film(s) listed, "
           f"{len(permalinked)} permalinked into {SITE_DIR}/")
 
 

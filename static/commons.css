@@ -9,7 +9,7 @@
  * each one itself.
  *
  * Tokens a site may override in its own :root:
- *   --content-width   the shared content column (Crows-width by default)
+ *   --content-width   the shared content column (Crow-width by default)
  *   --masthead-gap    space between wordmark and nav
  *   --accent          a single accent colour (may be set from branding.accent)
  */
