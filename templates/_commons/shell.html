@@ -49,6 +49,26 @@
    `url` filter, never by concatenation. #}
 {% set canon = site.get('canonical_url') or site.get('url') %}
 {% set canon = (canon ~ '/') if (canon and not canon.endswith('/')) else canon %}
+{# The canonical URL and title of THIS page, which is not always the
+   publication's.
+
+   `canon` above is the publication root. It is the right answer for the root
+   page and the wrong one everywhere else: PROTOCOL.md §3 gives every object its
+   own canonical URL, "the object's single source of truth", derived from the
+   profile's URL rule (§9 — crow `/<slug>/`, lens `/p/<id>/`, kino `/f/<id>/`).
+   A page served AT an object's canonical URL that names the root instead is
+   telling a reader the object is a duplicate of the publication front page.
+
+   A builder passes `page_canonical` (and optionally `page_title`) when it
+   renders an object; anything that passes neither is unchanged, which is why
+   this is safe to vendor everywhere before any builder uses it.
+
+   Deliberately NOT reused below: `og:image` resolves a publication brand asset
+   against the publication root, and the JSON-LD describes the
+   CreativeWorkSeries — the publication — so both keep `canon`. Repointing those
+   at an object would make the publication's identity move page to page. #}
+{% set page_url = page_canonical | default(none, true) or canon %}
+{% set page_name = page_title | default(none, true) or site.name %}
 <!doctype html>
 <html lang="en"{% block root_attrs %}{% endblock %}>
 <head>
@@ -57,10 +77,10 @@
 <title>{% block title %}{{ site.name }}{% endblock %}</title>
 <meta name="description" content="{{ site.description }}">
 {% if canon %}
-<link rel="canonical" href="{{ canon }}">
-<meta property="og:title" content="{{ site.name }}">
+<link rel="canonical" href="{{ page_url }}">
+<meta property="og:title" content="{{ page_name }}">
 <meta property="og:description" content="{{ site.description }}">
-<meta property="og:url" content="{{ canon }}">
+<meta property="og:url" content="{{ page_url }}">
 {% if brand.get('og_image') %}<meta property="og:image" content="{{ canon | url(brand.og_image) }}">{% endif %}
 {% endif %}
 {% if publishers and canon %}

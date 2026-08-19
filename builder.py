@@ -126,10 +126,17 @@ def build(entries_root=None, artifacts_root=None) -> None:
                 films=[f for f in listed if visibility.is_syndicated(f)],
                 site=site, depth=0)
 
+        # `page_canonical` is the film's own address (PROTOCOL.md §3 — "the
+        # object's single source of truth"), built the same way the feed builds
+        # its <entry><link> so the two cannot disagree. `page_title` is the same
+        # display title the <title> tag uses, so og:title names the film rather
+        # than the publication.
         for film in permalinked:
             newer, older = entry_store.neighbours(listed, film["id"])
             _render(env, "film.html", STAGING_DIR / "f" / film["id"] / "index.html",
                     film=film, site=site, depth=2,
+                    page_canonical=urls.url(urls.root(site), f"f/{film['id']}/"),
+                    page_title=display_title(film),
                     withdrawn=visibility.effective_state(film) == visibility.ARCHIVED,
                     newer=newer, older=older)
 
