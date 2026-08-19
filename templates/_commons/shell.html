@@ -84,10 +84,19 @@
 {% endif %}
 {% block head %}{% endblock %}
 </head>
-<body>
+{#- The h-feed is on `body`, not on `main`, for one structural reason:
+    `p-author` is only a property of the h-feed if it nests INSIDE the h-feed
+    element, and the publisher is named in the footer. Putting the h-feed on
+    `main` and the author in the footer would emit an h-card that belongs to
+    nothing, and the publication would silently stop naming its publisher —
+    which is one half of what makes the relationship verifiable. -#}
+<body{% if publishers %} class="h-feed"{% endif %}>
 
 <header class="masthead">
-  <a class="wordmark" href="{{ base }}">{{ site.name }}</a>
+  {#- Already the publication's name and a link to its root, so it carries the
+      h-feed's `p-name` and `u-url` rather than a second hidden copy of both.
+      Visible data, no visual change. -#}
+  <a class="wordmark{% if publishers %} p-name u-url{% endif %}" href="{{ base }}">{{ site.name }}</a>
   {% if site.get('nav') %}
   <nav>
     {% for item in site.nav %}
@@ -97,33 +106,7 @@
   {% endif %}
 </header>
 
-{# When a publication declares its publishers, `main` becomes the h-feed and the
-   byline carries them as `p-author h-card` — the microformats half of the same
-   claim the JSON-LD above makes. The two MUST agree; a test asserts it.
-
-   `p-author` has to nest inside the `h-feed` element to be a property of it,
-   which is why the byline lives here and not in the footer. It is rendered
-   visibly rather than hidden: a person should be able to see who a publication
-   says publishes it, because that claim is one half of what makes publishership
-   verifiable, and a claim only a parser can read is a claim a reader cannot
-   check. #}
-<main{% if publishers %} class="h-feed"{% endif %}>
-{% if publishers %}
-{#- Whitespace here is content, not formatting: the separators between names are
-    the sentence. Written on one line per part with explicit spacing, because
-    Jinja's whitespace control silently ate the space after "by" when this was
-    laid out for readability — and "Published byJosh Bernhard" is the kind of
-    defect that survives review and not a parser.
-
-    `h-card` on an anchor takes its `u-url` implicitly from href (mf2 implied
-    properties). Writing `u-url` here as well would additionally make each
-    publisher a `url` of the enclosing h-feed, so the publication would claim
-    three addresses — caught by parsing the output rather than reading it. -#}
-<p class="publication-byline">
-{%- if canon %}<a class="u-url" href="{{ canon }}"><data class="p-name" value="{{ site.name }}"></data></a>{% endif -%}
-Published by {% for p in publishers %}{% if not loop.first %}{{ " and " if loop.last else ", " }}{% endif %}<a class="p-author h-card" href="{{ p.url }}">{{ p.get('name') or p.url }}</a>{% endfor %}
-</p>
-{% endif %}
+<main>
 {% block content %}{% endblock %}
 </main>
 
@@ -133,7 +116,17 @@ Published by {% for p in publishers %}{% if not loop.first %}{{ " and " if loop.
   <p class="footer-line">
     {% if foot.get('copyright') %}<span>{{ foot.copyright }}</span>{% endif %}
     {% if foot.get('published_with') %}<span>Published with {{ foot.published_with }}</span>{% endif %}
-    {% if foot.get('commons') %}<span>Part of The Commons</span>{% endif %}
+    {#- "Part of The Commons" is the link to the publisher's Commons identity,
+        and it is where this publication names who publishes it. The `p-name` is
+        a <data> element because the visible words are not the person's name —
+        without it, mf2's implied-name rule would report a publisher called
+        "Part of The Commons".
+
+        With several publishers the first carries the label and the rest carry
+        their own names, so every claim is emitted rather than only the first. -#}
+    {% for p in publishers %}<span><a class="p-author h-card" href="{{ p.url }}"><data class="p-name" value="{{ p.get('name') or p.url }}"></data>{{ 'Part of The Commons' if loop.first and foot.get('commons') else (p.get('name') or p.url) }}</a></span>
+    {% endfor %}
+    {%- if not publishers and foot.get('commons') %}<span>Part of The Commons</span>{% endif %}
     {% for link in foot.get('links', []) %}<span><a href="{{ link.href }}"{% if link.get('rel') %} rel="{{ link.rel }}"{% endif %}>{{ link.label }}</a></span>{% endfor %}
     {% if site.get('feed') %}<span><a href="{{ base }}feed.xml">Feed</a></span>{% endif %}
   </p>
