@@ -4,7 +4,16 @@
   <subtitle>{{ site.description }}</subtitle>
   <link href="{{ site.url }}/feed.xml" rel="self"/>
   <link href="{{ site.url }}"/>
-  <id>{{ site.url }}/</id>
+{# The feed's own durable identity — frozen in masthead.json, never derived.
+   RFC 4287 §4.2.6 makes atom:id a permanent, universally unique identifier for
+   the feed; the address it is served at is `rel="self"` just above, and that is
+   the one that moves. Deriving this from canonical_url made the two the same
+   string, so rehosting silently reissued the feed's identity along with its
+   address — a subscriber can reasonably read that as a different feed.
+
+   This is the object-level rule of PROTOCOL.md §8.1 applied one level up:
+   feed identity is carried, not reissued. #}
+  <id>{{ site.feed_guid }}</id>
 {# Who publishes this publication. Atom has carried a URI for its author
    since RFC 4287 §3.2.2 and these feeds simply never emitted one, so a
    consumer could read the name and had no way to reach the person. The URI

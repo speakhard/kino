@@ -117,5 +117,55 @@ class TheBuildRefusesAnObjectWithoutOne(unittest.TestCase):
             self.assertNotIn("feed identity", str(error))
 
 
+class TheFeedsOwnIdentity(unittest.TestCase):
+    """The same rule one level up.
+
+    RFC 4287 §4.2.6 makes `atom:id` a permanent identifier for the FEED, and
+    `rel="self"` its address. Derived from canonical_url the two were the same
+    string, so rehosting reissued the feed's identity along with its address —
+    a subscriber can reasonably read that as a different feed, which is the
+    entry-level failure at publication scale.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.here = _build_at(None)
+        cls.moved = _build_at(MOVED_TO)
+
+    @staticmethod
+    def _self_link(feed):
+        for link in feed.findall(f"{ATOM}link"):
+            if link.get("rel") == "self":
+                return link.get("href")
+        return None
+
+    def test_the_feeds_address_moves(self):
+        """The control."""
+        before = self._self_link(self.here)
+        after = self._self_link(self.moved)
+        self.assertNotEqual(before, after)
+        self.assertTrue(after.startswith(MOVED_TO), after)
+
+    def test_the_feeds_identity_does_not(self):
+        self.assertEqual(self.here.findtext(f"{ATOM}id"),
+                         self.moved.findtext(f"{ATOM}id"))
+
+    def test_the_feeds_identity_is_not_derived_from_the_new_address(self):
+        self.assertFalse(
+            (self.moved.findtext(f"{ATOM}id") or "").startswith(MOVED_TO))
+
+    def test_identity_and_address_differ_after_a_move(self):
+        self.assertNotEqual(self.moved.findtext(f"{ATOM}id"),
+                            self._self_link(self.moved))
+
+    def test_it_comes_from_the_manifest_not_from_canonical_url(self):
+        """Stored, never computed. If it were computed this whole class would
+        pass for the wrong reason on a publication that had not moved yet."""
+        import json
+        manifest = json.loads(Path("masthead.json").read_text(encoding="utf-8"))
+        self.assertTrue((manifest.get("feed_guid") or "").strip())
+        self.assertEqual(self.here.findtext(f"{ATOM}id"), manifest["feed_guid"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -58,9 +58,23 @@ def _env() -> Environment:
 
 def site_config() -> dict:
     try:
-        return json.loads(MASTHEAD.read_text(encoding="utf-8"))
+        manifest = json.loads(MASTHEAD.read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
         raise BuildError(f"masthead.json is missing or unreadable: {error}") from error
+
+    # The feed's own durable identity must be stored, never derived. Checked
+    # here rather than in the build verifier because by then the template has
+    # already failed with an UndefinedError that says nothing about what to do.
+    if not str(manifest.get("feed_guid") or "").strip():
+        raise BuildError(
+            "masthead.json has no feed_guid — the feed's durable atom:id "
+            "(RFC 4287 §4.2.6). It must be stored rather than derived from "
+            "canonical_url, or rehosting reissues the feed's identity along "
+            "with its address. Freeze it at the feed's current <id>."
+        )
+
+    return manifest
+
 
 
 def _render(env, template, out: Path, **context) -> None:
