@@ -2,8 +2,8 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>{{ site.name }}</title>
   <subtitle>{{ site.description }}</subtitle>
-  <link href="{{ site.url }}/feed.xml" rel="self"/>
-  <link href="{{ site.url }}"/>
+  <link href="{{ site.url | url('feed.xml') }}" rel="self"/>
+  <link href="{{ site.url | url }}"/>
 {# The feed's own durable identity — frozen in masthead.json, never derived.
    RFC 4287 §4.2.6 makes atom:id a permanent, universally unique identifier for
    the feed; the address it is served at is `rel="self"` just above, and that is
@@ -32,7 +32,7 @@
 {% for film in films %}
   <entry>
     <title>{{ film | title_of }}</title>
-    <link href="{{ site.url }}/f/{{ film.id }}/"/>
+    <link href="{{ site.url | url('f/' ~ film.id ~ '/') }}"/>
     {#- The identity, not the address. <link> above moves if the publication is
         rehosted; this must not. -#}
     <id>{{ film.guid }}</id>

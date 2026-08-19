@@ -36,9 +36,19 @@
    invention: Schema.org `publisher` and microformats `p-author` both already
    mean exactly this. #}
 {% set publishers = site.get('publishers', []) %}
-{# canonical_url is the manifest field (PROTOCOL.md §2); early publications used
-   `url`, so fall back to it and neither breaks. #}
+{# The publication's canonical root, ending in exactly one slash.
+   `canonical_url` is the manifest field (PROTOCOL.md §2); `url` is the older
+   spelling some publications still carry.
+
+   The slash is the convention and it is load-bearing: this document's own
+   relative references — its stylesheets, its feed, its permalinks — resolve
+   against this address, and a root without the slash resolves them one level
+   too high. At a domain root the slash is implicit and the difference never
+   shows; at a path it is the difference between a working publication and a
+   200 whose every link points off it. Subordinate URLs are built with the
+   `url` filter, never by concatenation. #}
 {% set canon = site.get('canonical_url') or site.get('url') %}
+{% set canon = (canon ~ '/') if (canon and not canon.endswith('/')) else canon %}
 <!doctype html>
 <html lang="en"{% block root_attrs %}{% endblock %}>
 <head>
@@ -51,7 +61,7 @@
 <meta property="og:title" content="{{ site.name }}">
 <meta property="og:description" content="{{ site.description }}">
 <meta property="og:url" content="{{ canon }}">
-{% if brand.get('og_image') %}<meta property="og:image" content="{{ canon }}/{{ brand.og_image }}">{% endif %}
+{% if brand.get('og_image') %}<meta property="og:image" content="{{ canon | url(brand.og_image) }}">{% endif %}
 {% endif %}
 {% if publishers and canon %}
 {# The same publisher claim in Schema.org, for consumers that read JSON-LD

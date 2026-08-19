@@ -18,6 +18,8 @@ import shutil
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
+
+import urls
 from markupsafe import escape
 
 import entries as entry_store
@@ -46,6 +48,7 @@ def _env() -> Environment:
         trim_blocks=True,
         lstrip_blocks=True,
     )
+    env.filters["url"] = urls.url
     env.filters["date"] = lambda f, fmt="%B %-d, %Y": entry_date(f).strftime(fmt)
     env.filters["runtime"] = runtime_display
     env.filters["title_of"] = display_title
