@@ -25,7 +25,12 @@ from pathlib import Path
 import builder
 
 ATOM = "{http://www.w3.org/2005/Atom}"
-MOVED_TO = "https://joshbernhard.com/filmed"
+# Deliberately somewhere the publication will never live. This used to be the
+# address the publication was about to migrate to, which quietly stopped being a
+# *different* address the moment the migration happened — the control test then
+# compared a build against an identical build and correctly reported that
+# nothing had moved. A hypothetical address cannot go stale.
+MOVED_TO = "https://example.test/moved"
 
 
 def _build_at(canonical):
