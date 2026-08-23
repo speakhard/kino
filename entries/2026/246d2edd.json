@@ -1,0 +1,20 @@
+{
+  "id": "246d2edd",
+  "guid": "https://joshbernhard.com/filmed/f/246d2edd/",
+  "created": "2026-04-12T00:00:00-07:00",
+  "title": "slide home",
+  "description": "",
+  "runtime": 9,
+  "visibility": "public",
+  "publish_at": null,
+  "feed": {
+    "pinned": false,
+    "rank": null,
+    "sequence": null
+  },
+  "video": {
+    "host": "vimeo",
+    "id": "1220087638"
+  },
+  "cover": "cover.jpg"
+}
