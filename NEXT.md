@@ -4,4 +4,4 @@
 
 # kino — Next
 
-- [ ] Add a theme model to the settings schema
+- [ ] Stage 2 on Kino: extract the renderer invocation into a subprocess call that matches the Cloudflare build command, re-point the rollback tests at it, and prove a failed build leaves no record, no artifact, no commit, with the service still up.

@@ -20,3 +20,9 @@ site.tmp/
 # OS / editors
 .DS_Store
 *.sublime-workspace
+
+# devtracker — generated session logs and project state
+# These are projections of ~/.local/share/devtracker/devtracker.db, not source.
+# Regenerate with: devtracker state -P <project>
+docs/sessions/
+docs/CURRENT_STATE.md

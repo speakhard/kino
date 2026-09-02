@@ -4,7 +4,7 @@
 
 # kino — Handoff
 
-_As of 2026-08-15T02:25:16Z._
+_As of 2026-09-02T15:40:34Z._
 
 ## Where this stands
 
@@ -12,11 +12,11 @@ Currently on M3 — configurable player themes. Most recently: Scoped the theme 
 
 ## Current milestone
 
-M3 — configurable player themes
+Stage 1 complete and verified - publication root is explicit configuration, no behaviour change
 
 ## Next
 
-- Add a theme model to the settings schema
+- Stage 2 on Kino: extract the renderer invocation into a subprocess call that matches the Cloudflare build command, re-point the rollback tests at it, and prove a failed build leaves no record, no artifact, no commit, with the service still up.
 
 ## Recently completed
 
@@ -24,7 +24,10 @@ _None recorded._
 
 ## Known risks
 
-- Vimeo API rate limits undocumented above 200 req/min
+- Stage 1 alone does not close the defect. Kino still syncs and then rebuilds in-process (publisher.py sync followed by builder.build), so a publish that fast-forwards the checkout can still swap templates under already-loaded code. Kino is currently level with origin so the condition is not armed, but nothing prevents it re-arming.
+- Kino's distributor.sync() is called outside the try, so a DistributionError still reaches the author as an unexplained 500 rather than a rolled-back transaction with a message. Unchanged by this stage.
+- The build's closing log line now prints an absolute path where it printed 'site/'. Cosmetic, but it is a real output difference and anything parsing that line would see it.
+- f466c63 is committed locally only. Kino on ppmanchester is level with origin, so the two are now divergent until this is pushed and pulled deliberately.
 
 ## Resuming
 
