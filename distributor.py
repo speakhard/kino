@@ -13,9 +13,9 @@ Adapted from Crows, which learned these lessons the expensive way:
 from __future__ import annotations
 
 import subprocess
-from pathlib import Path
 
-ROOT = Path(__file__).parent
+import publication
+
 PUBLISH_BRANCH = "main"
 
 
@@ -25,7 +25,7 @@ class DistributionError(RuntimeError):
 
 def _git(*args) -> str:
     try:
-        result = subprocess.run(["git", *args], cwd=ROOT, check=True,
+        result = subprocess.run(["git", *args], cwd=publication.root(), check=True,
                                 capture_output=True, text=True)
     except subprocess.CalledProcessError as error:
         detail = (error.stderr or error.stdout or "").strip()

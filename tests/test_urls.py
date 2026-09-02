@@ -16,17 +16,50 @@ why it went unnoticed until the first subpath move.
 """
 from __future__ import annotations
 
-import json
+import contextlib
 import re
+import tempfile
 import unittest
 from pathlib import Path
 from urllib.parse import urlparse
 
 import builder
+import publication
 import urls
+from tests import publications
 
-MANIFEST = json.loads(Path("masthead.json").read_text(encoding="utf-8"))
-ROOT = urls.root(MANIFEST)
+# Populated by setUpModule, from the publication these tests build for
+# themselves. Module-level constants read at import time would be answering the
+# question this whole file exists to make explicit.
+MANIFEST = None
+ROOT = None
+_OPEN = None
+
+
+def setUpModule():
+    """Build the publication these tests read.
+
+    They used to assert against `site/` in the working directory — whatever
+    happened to be built there, by whichever version of the software last ran a
+    build. On the publishing host that was a nineteen-day-old build still
+    declaring a pre-migration canonical, and these tests failed for a reason
+    that had nothing to do with the code under test.
+
+    A test that reads built output should build it. The publication is a copy,
+    so nothing here touches the real one.
+    """
+    global MANIFEST, ROOT, _OPEN
+    _OPEN = contextlib.ExitStack()
+    tmp = Path(_OPEN.enter_context(
+        tempfile.TemporaryDirectory(prefix="kino-urls-")))
+    _OPEN.enter_context(publications.temporary(tmp, records=True))
+    builder.build()
+    MANIFEST = publication.manifest()
+    ROOT = urls.root(MANIFEST)
+
+
+def tearDownModule():
+    _OPEN.close()
 
 
 class TheJoiningMechanism(unittest.TestCase):
@@ -63,12 +96,12 @@ class TheCanonicalRoot(unittest.TestCase):
     def test_the_page_declares_that_exact_root_as_canonical(self):
         """The canonical must equal the address that serves it without
         redirecting — not a bare form that 301s to the real one."""
-        html = (builder.SITE_DIR / "index.html").read_text(encoding="utf-8")
+        html = (publication.site_dir() / "index.html").read_text(encoding="utf-8")
         declared = re.search(r'<link rel="canonical" href="([^"]+)"', html).group(1)
         self.assertEqual(declared, ROOT)
 
     def test_og_url_agrees_with_the_canonical(self):
-        html = (builder.SITE_DIR / "index.html").read_text(encoding="utf-8")
+        html = (publication.site_dir() / "index.html").read_text(encoding="utf-8")
         og = re.search(r'<meta property="og:url" content="([^"]+)"', html).group(1)
         self.assertEqual(og, ROOT)
 
@@ -77,7 +110,7 @@ class NothingEscapesThePublication(unittest.TestCase):
     """Every reference the root page emits, resolved the way a browser would."""
 
     def setUp(self):
-        self.html = (builder.SITE_DIR / "index.html").read_text(encoding="utf-8")
+        self.html = (publication.site_dir() / "index.html").read_text(encoding="utf-8")
 
     def _references(self):
         for attr in ("href", "src"):
@@ -114,7 +147,7 @@ class NothingEscapesThePublication(unittest.TestCase):
 
 class TheFeedStaysInside(unittest.TestCase):
     def setUp(self):
-        self.xml = (builder.SITE_DIR / "feed.xml").read_text(encoding="utf-8")
+        self.xml = (publication.site_dir() / "feed.xml").read_text(encoding="utf-8")
 
     def test_no_url_in_the_feed_has_a_doubled_slash(self):
         for found in re.findall(r'https?://[^"<\s]+', self.xml):

@@ -22,6 +22,7 @@ from flask import (Flask, redirect, render_template, request,
 
 import entries as entry_store
 import hosts
+import publication
 import visibility
 from builder import site_config
 from covers import CARD_NAME, COVER_NAME
@@ -114,7 +115,7 @@ def cover(entry_id, name):
     """
     if name not in (COVER_NAME, CARD_NAME):
         return "Not found", 404
-    directory = (Path(entry_store.ARTIFACTS_DIR) / entry_id).resolve()
+    directory = (publication.artifacts_dir() / entry_id).resolve()
     if not directory.is_dir():
         return "Not found", 404
     return send_from_directory(directory, name)

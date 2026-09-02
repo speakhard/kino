@@ -24,15 +24,11 @@ from markupsafe import escape
 
 import entries as entry_store
 import hosts
+import publication
 import visibility
 from covers import CARD_NAME, COVER_NAME
 from models import display_title, entry_date, runtime_display
 
-SITE_DIR = Path("site")
-STAGING_DIR = Path("site.tmp")
-TEMPLATES_DIR = Path("templates")
-STATIC_DIR = Path("static")
-MASTHEAD = Path("masthead.json")
 
 
 class BuildError(RuntimeError):
@@ -41,7 +37,7 @@ class BuildError(RuntimeError):
 
 def _env() -> Environment:
     env = Environment(
-        loader=FileSystemLoader(TEMPLATES_DIR),
+        loader=FileSystemLoader(publication.templates_dir()),
         autoescape=select_autoescape(["html", "xml"]),
         # An undefined variable is a build failure, not a silently blank page.
         undefined=StrictUndefined,
@@ -60,23 +56,16 @@ def _env() -> Environment:
 
 
 def site_config() -> dict:
+    """Publication identity, from the manifest.
+
+    Kept as the renderer's name for it: this module is the reference renderer and
+    travels with the publication, so it reads the manifest through the same
+    boundary the service does rather than parsing it a second way.
+    """
     try:
-        manifest = json.loads(MASTHEAD.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as error:
-        raise BuildError(f"masthead.json is missing or unreadable: {error}") from error
-
-    # The feed's own durable identity must be stored, never derived. Checked
-    # here rather than in the build verifier because by then the template has
-    # already failed with an UndefinedError that says nothing about what to do.
-    if not str(manifest.get("feed_guid") or "").strip():
-        raise BuildError(
-            "masthead.json has no feed_guid — the feed's durable atom:id "
-            "(RFC 4287 §4.2.6). It must be stored rather than derived from "
-            "canonical_url, or rehosting reissues the feed's identity along "
-            "with its address. Freeze it at the feed's current <id>."
-        )
-
-    return manifest
+        return publication.manifest()
+    except publication.ManifestError as error:
+        raise BuildError(str(error)) from error
 
 
 
@@ -102,8 +91,8 @@ def _copy_covers(films, staging: Path, artifacts_root) -> list[str]:
 
 
 def build(entries_root=None, artifacts_root=None) -> None:
-    entries_root = Path(entries_root or entry_store.ENTRIES_DIR)
-    artifacts_root = Path(artifacts_root or entry_store.ARTIFACTS_DIR)
+    entries_root = Path(entries_root or publication.entries_dir())
+    artifacts_root = Path(artifacts_root or publication.artifacts_dir())
 
     env = _env()
     site = site_config()
@@ -111,18 +100,25 @@ def build(entries_root=None, artifacts_root=None) -> None:
     listed = entry_store.load_entries(entries_root)
     permalinked = entry_store.load_permalinked(entries_root)
 
-    if STAGING_DIR.exists():
-        shutil.rmtree(STAGING_DIR)
-    STAGING_DIR.mkdir(parents=True)
+    # Bound once, for the duration of this build. A build must not change which
+    # publication it is writing into halfway through, so the question is asked
+    # here rather than at each of the fourteen places that used to answer it
+    # with a module-level constant.
+    staging = publication.staging_dir()
+    site_out = publication.site_dir()
+
+    if staging.exists():
+        shutil.rmtree(staging)
+    staging.mkdir(parents=True)
 
     try:
-        _render(env, "index.html", STAGING_DIR / "index.html",
+        _render(env, "index.html", staging / "index.html",
                 films=listed, site=site, depth=0)
 
-        _render(env, "archive.html", STAGING_DIR / "archive" / "index.html",
+        _render(env, "archive.html", staging / "archive" / "index.html",
                 years=entry_store.group_by_year(listed), site=site, depth=1)
 
-        _render(env, "feed.xml", STAGING_DIR / "feed.xml",
+        _render(env, "feed.xml", staging / "feed.xml",
                 films=[f for f in listed if visibility.is_syndicated(f)],
                 site=site, depth=0)
 
@@ -133,39 +129,39 @@ def build(entries_root=None, artifacts_root=None) -> None:
         # than the publication.
         for film in permalinked:
             newer, older = entry_store.neighbours(listed, film["id"])
-            _render(env, "film.html", STAGING_DIR / "f" / film["id"] / "index.html",
+            _render(env, "film.html", staging / "f" / film["id"] / "index.html",
                     film=film, site=site, depth=2,
                     page_canonical=urls.url(urls.root(site), f"f/{film['id']}/"),
                     page_title=display_title(film),
                     withdrawn=visibility.effective_state(film) == visibility.ARCHIVED,
                     newer=newer, older=older)
 
-        if STATIC_DIR.exists():
+        if publication.static_dir().exists():
             # compose.css styles the authoring interface, which the published
             # site has no way to reach. Shipping it would only describe
             # surfaces a reader cannot use.
-            shutil.copytree(STATIC_DIR, STAGING_DIR / "static",
+            shutil.copytree(publication.static_dir(), staging / "static",
                             ignore=shutil.ignore_patterns("compose.css"))
 
-        shutil.copy(MASTHEAD, STAGING_DIR / "masthead.json")
+        shutil.copy(publication.masthead(), staging / "masthead.json")
 
-        missing = _copy_covers(permalinked, STAGING_DIR, artifacts_root)
+        missing = _copy_covers(permalinked, staging, artifacts_root)
         if missing:
             raise BuildError("Missing cover images: " + "; ".join(missing[:5]))
 
-        verify(STAGING_DIR, permalinked, listed)
+        verify(staging, permalinked, listed)
 
         # Destructive step last, after a complete site exists.
-        if SITE_DIR.exists():
-            shutil.rmtree(SITE_DIR)
-        STAGING_DIR.rename(SITE_DIR)
+        if site_out.exists():
+            shutil.rmtree(site_out)
+        staging.rename(site_out)
 
     except BaseException:
-        shutil.rmtree(STAGING_DIR, ignore_errors=True)
+        shutil.rmtree(staging, ignore_errors=True)
         raise
 
     print(f"Built {site.get('name', 'Kino')}: {len(listed)} film(s) listed, "
-          f"{len(permalinked)} permalinked into {SITE_DIR}/")
+          f"{len(permalinked)} permalinked into {site_out}/")
 
 
 def verify(site_dir: Path, permalinked, listed) -> None:

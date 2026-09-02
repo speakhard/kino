@@ -14,20 +14,18 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import publication
 import visibility
 from models import entry_date, feed_key
 
-ENTRIES_DIR = Path("entries")
-ARTIFACTS_DIR = Path("artifacts")
-
 
 def entry_path(entry_id: str, created, root: Path | None = None) -> Path:
-    root = Path(root or ENTRIES_DIR)
+    root = Path(root or publication.entries_dir())
     return root / str(created.year) / f"{entry_id}.json"
 
 
 def artifact_dir(entry_id: str, root: Path | None = None) -> Path:
-    return Path(root or ARTIFACTS_DIR) / entry_id
+    return Path(root or publication.artifacts_dir()) / entry_id
 
 
 def save_entry(entry: dict, root: Path | None = None) -> Path:
@@ -48,7 +46,7 @@ def load_entry(path: Path) -> dict | None:
 
 def load_all(root: Path | None = None) -> list[dict]:
     """Every film on disk regardless of state — the authoring view."""
-    root = Path(root or ENTRIES_DIR)
+    root = Path(root or publication.entries_dir())
     films = []
     for path in sorted(root.glob("*/*.json")):
         film = load_entry(path)
@@ -73,7 +71,7 @@ def load_permalinked(root: Path | None = None) -> list[dict]:
 
 
 def find_entry(entry_id: str, root: Path | None = None) -> dict | None:
-    root = Path(root or ENTRIES_DIR)
+    root = Path(root or publication.entries_dir())
     for path in root.glob(f"*/{entry_id}.json"):
         return load_entry(path)
     return None

@@ -23,6 +23,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import builder
+import publication
+from tests import publications
 
 ATOM = "{http://www.w3.org/2005/Atom}"
 # Deliberately somewhere the publication will never live. This used to be the
@@ -34,22 +36,22 @@ MOVED_TO = "https://example.test/moved"
 
 
 def _build_at(canonical):
+    """Build a copy of this publication, optionally rehosted, and read its feed.
+
+    A *copy*, opened as its own publication. This used to edit the real
+    `masthead.json` in place and put it back afterwards, which worked but meant
+    every run of the suite briefly rewrote the live manifest and depended on the
+    restore in a `finally` to undo it — and it redirected the build by assigning
+    to two module-level constants in `builder`, which is only possible while the
+    renderer answers "which publication" at import time. Now that a publication
+    is somewhere rather than everywhere, the test can have one of its own.
+    """
     tmp = Path(tempfile.mkdtemp(prefix="kino-identity-"))
-    real_site, real_staging = builder.SITE_DIR, builder.STAGING_DIR
-    manifest = Path("masthead.json")
-    original = manifest.read_text(encoding="utf-8")
-    builder.SITE_DIR, builder.STAGING_DIR = tmp / "site", tmp / "site.tmp"
     try:
-        if canonical is not None:
-            data = json.loads(original)
-            data["canonical_url"] = canonical
-            data["url"] = canonical
-            manifest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-        builder.build()
-        return ET.parse(builder.SITE_DIR / "feed.xml").getroot()
+        with publications.temporary(tmp, canonical=canonical, records=True):
+            builder.build()
+            return ET.parse(publication.site_dir() / "feed.xml").getroot()
     finally:
-        manifest.write_text(original, encoding="utf-8")
-        builder.SITE_DIR, builder.STAGING_DIR = real_site, real_staging
         shutil.rmtree(tmp, ignore_errors=True)
 
 

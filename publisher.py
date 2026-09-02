@@ -24,6 +24,7 @@ import covers as cover_pipeline
 import distributor
 import entries as entry_store
 import hosts
+import publication
 import visibility
 from models import MAX_DESCRIPTION, MAX_TITLE, build_entry, entry_date, new_id
 
@@ -56,8 +57,8 @@ def publish(*, title, description="", video_host=hosts.DEFAULT_HOST, video_id,
     if cover is None or not getattr(cover, "filename", ""):
         raise ValueError("A cover image is required.")
 
-    entries_root = Path(entries_root or entry_store.ENTRIES_DIR)
-    artifacts_root = Path(artifacts_root or entry_store.ARTIFACTS_DIR)
+    entries_root = Path(entries_root or publication.entries_dir())
+    artifacts_root = Path(artifacts_root or publication.artifacts_dir())
 
     if git:
         distributor.sync()
@@ -112,8 +113,8 @@ def revise(entry_id, changes, entries_root=None, artifacts_root=None, git=True):
     a different work — but doing so is the one edit that changes what the page
     actually shows, so it is validated as strictly as publishing.
     """
-    entries_root = Path(entries_root or entry_store.ENTRIES_DIR)
-    artifacts_root = Path(artifacts_root or entry_store.ARTIFACTS_DIR)
+    entries_root = Path(entries_root or publication.entries_dir())
+    artifacts_root = Path(artifacts_root or publication.artifacts_dir())
 
     entry = entry_store.find_entry(entry_id, entries_root)
     if entry is None:
@@ -208,8 +209,8 @@ def erase(entry_id, entries_root=None, artifacts_root=None, git=True):
     This removes Kino's page and nothing else. The video remains exactly where
     it was on its host, untouched, because it was never Kino's to delete.
     """
-    entries_root = Path(entries_root or entry_store.ENTRIES_DIR)
-    artifacts_root = Path(artifacts_root or entry_store.ARTIFACTS_DIR)
+    entries_root = Path(entries_root or publication.entries_dir())
+    artifacts_root = Path(artifacts_root or publication.artifacts_dir())
 
     entry = entry_store.find_entry(entry_id, entries_root)
     if entry is None:
