@@ -33,6 +33,28 @@ class PublishError(RuntimeError):
     """Publishing failed; the repository and published site are unchanged."""
 
 
+def _sync(git, action):
+    """Fast-forward before a transaction, and return the commit it starts from.
+
+    Its own step, before the transaction's `try`, because nothing has been
+    touched yet and so there is nothing to roll back. But a failure here —
+    origin unreachable, or a divergence that needs a person — is still a
+    failure of the transaction and must be reported as one. It used to escape
+    as a bare DistributionError, which the authoring interface does not
+    catch, and the publisher saw an unexplained 500.
+    """
+    if not git:
+        return None
+    try:
+        distributor.sync()
+        return distributor.current_head()
+    except distributor.DistributionError as error:
+        raise PublishError(
+            f"{action} failed before anything was touched; nothing was changed "
+            f"(could not bring the publication up to date with its origin: {error})."
+        ) from error
+
+
 def _validate(title, description, video_host, video_id):
     if not (title or "").strip():
         raise ValueError("A film needs a title.")
@@ -60,9 +82,7 @@ def publish(*, title, description="", video_host=hosts.DEFAULT_HOST, video_id,
     entries_root = Path(entries_root or publication.entries_dir())
     artifacts_root = Path(artifacts_root or publication.artifacts_dir())
 
-    if git:
-        distributor.sync()
-    original_head = distributor.current_head() if git else None
+    original_head = _sync(git, "Publishing")
 
     entry_id = new_id()
     artifact_dir = artifacts_root / entry_id
@@ -153,9 +173,7 @@ def revise(entry_id, changes, entries_root=None, artifacts_root=None, git=True):
     if revised == entry and not replacing_cover:
         return revised, False
 
-    if git:
-        distributor.sync()
-    original_head = distributor.current_head() if git else None
+    original_head = _sync(git, "Revision")
 
     before = json.dumps(entry, indent=2, ensure_ascii=False)
     artifact_dir = artifacts_root / entry_id
@@ -216,9 +234,7 @@ def erase(entry_id, entries_root=None, artifacts_root=None, git=True):
     if entry is None:
         raise ValueError(f"No such film: {entry_id}")
 
-    if git:
-        distributor.sync()
-    original_head = distributor.current_head() if git else None
+    original_head = _sync(git, "Erasure")
 
     path = entry_store.entry_path(entry_id, entry_date(entry), entries_root)
     artifact_dir = artifacts_root / entry_id
