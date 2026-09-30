@@ -12,12 +12,12 @@ docs:
   - ~/Development/lens/publication.py and lens/tests/publications.py - the proven shape Kino is following
 git:
   branch: main
-  head: f466c63
-  head_subject: Kino opens a publication; it does not have to live inside one
-  dirty: 5
-  ahead: 1
+  head: '9832299'
+  head_subject: 'CI: run the test suite on every push and pull request'
+  dirty: 0
+  ahead: 7
   behind: 0
-  observed_at: '2026-09-02T15:40:34Z'
+  observed_at: '2026-09-30T18:47:18Z'
 resume:
   directory: /home/fs42/Development/kino
   command: cd /home/fs42/Development/kino && claude
@@ -40,7 +40,7 @@ provenance:
     at: '2026-09-02T15:40:34Z'
   git:
     source: observed
-    at: '2026-09-02T15:40:34Z'
+    at: '2026-09-30T18:47:18Z'
   next_task:
     source: model
     at: '2026-09-02T15:40:34Z'
@@ -51,19 +51,19 @@ provenance:
     source: model
     at: '2026-09-02T15:40:34Z'
   summary:
-    source: recovered
-    at: '2026-08-01T19:57:37Z'
+    source: model
+    at: '2026-09-30T18:47:18Z'
   blockers:
     source: model
     at: '2026-09-02T15:40:34Z'
 next_task: 'Stage 2 on Kino: extract the renderer invocation into a subprocess call that matches the Cloudflare build command, re-point the rollback tests at it, and prove a failed build leaves no record, no artifact, no commit, with the service still up.'
 risks:
   - Stage 1 alone does not close the defect. Kino still syncs and then rebuilds in-process (publisher.py sync followed by builder.build), so a publish that fast-forwards the checkout can still swap templates under already-loaded code. Kino is currently level with origin so the condition is not armed, but nothing prevents it re-arming.
-  - Kino's distributor.sync() is called outside the try, so a DistributionError still reaches the author as an unexplained 500 rather than a rolled-back transaction with a message. Unchanged by this stage.
   - The build's closing log line now prints an absolute path where it printed 'site/'. Cosmetic, but it is a real output difference and anything parsing that line would see it.
-  - f466c63 is committed locally only. Kino on ppmanchester is level with origin, so the two are now divergent until this is pushed and pulled deliberately.
+  - Seven commits are local only (f466c63, 295f5c4 and the five M0 commits of 2026-09-30); origin/main is 404d101. Kino on ppmanchester was observed at 404d101 with kino.service active on 2026-09-30, so host and local copy diverge until a push and pull are approved.
+  - 'M0 hardening (2026-09-30), local only and not deployed: request guard (Host allowlist + Origin/Sec-Fetch-Site check), sync failures reported rather than 500, discovery document + 404.html, commons_spec 0.3, MIT LICENSE, CI workflow. Deploying the guard needs KINO_ALLOWED_HOSTS set if Kino is opened by any name other than its tailnet IP.'
 estimated_remaining: Stages 2-4 for Kino, then the same sequence for Crows with its publish lock resolved first. Multiple sessions.
-summary: 'Currently on M3 — configurable player themes. Most recently: Scoped the theme model. Outstanding: Settings migration not written.'
+summary: 'Stage 1 (publication root) and M0 hardening are committed locally and unpushed. Stage 2 (renderer as subprocess) is next.'
 latest_session: 20260902T154034Z-9ae8f081.md
 blockers: []
 ---
@@ -78,9 +78,9 @@ _Generated 2026-09-02T15:40:34Z. The front-matter above is the source of truth; 
 | **Current milestone** | Stage 1 complete and verified - publication root is explicit configuration, no behaviour change |
 | **Next milestone** | Stage 2 - invoke the renderer as a subprocess, which is the stage that actually closes the defect |
 | **Branch** | main |
-| **HEAD** | f466c63 — Kino opens a publication; it does not have to live inside one |
-| **Working tree** | 5 changed |
-| **Observed** | 2026-09-02T15:40:34Z |
+| **HEAD** | 9832299 — CI: run the test suite on every push and pull request |
+| **Working tree** | clean |
+| **Observed** | 2026-09-30T18:47:18Z |
 
 ## Today's goal
 
@@ -101,9 +101,9 @@ _None._
 ## Known risks
 
 - Stage 1 alone does not close the defect. Kino still syncs and then rebuilds in-process (publisher.py sync followed by builder.build), so a publish that fast-forwards the checkout can still swap templates under already-loaded code. Kino is currently level with origin so the condition is not armed, but nothing prevents it re-arming.
-- Kino's distributor.sync() is called outside the try, so a DistributionError still reaches the author as an unexplained 500 rather than a rolled-back transaction with a message. Unchanged by this stage.
 - The build's closing log line now prints an absolute path where it printed 'site/'. Cosmetic, but it is a real output difference and anything parsing that line would see it.
-- f466c63 is committed locally only. Kino on ppmanchester is level with origin, so the two are now divergent until this is pushed and pulled deliberately.
+- Seven commits are local only (f466c63, 295f5c4 and the five M0 commits of 2026-09-30); origin/main is 404d101. Kino on ppmanchester was observed at 404d101 with kino.service active on 2026-09-30, so host and local copy diverge until a push and pull are approved.
+- M0 hardening (2026-09-30), local only and not deployed: request guard (Host allowlist + Origin/Sec-Fetch-Site check), sync failures reported rather than 500, discovery document + 404.html, commons_spec 0.3, MIT LICENSE, CI workflow. Deploying the guard needs KINO_ALLOWED_HOSTS set if Kino is opened by any name other than its tailnet IP.
 
 ## Estimated remaining
 
@@ -141,9 +141,9 @@ Stage 2 on Kino: extract the renderer invocation into a subprocess call that mat
 
 Known risks:
 - Stage 1 alone does not close the defect. Kino still syncs and then rebuilds in-process (publisher.py sync followed by builder.build), so a publish that fast-forwards the checkout can still swap templates under already-loaded code. Kino is currently level with origin so the condition is not armed, but nothing prevents it re-arming.
-- Kino's distributor.sync() is called outside the try, so a DistributionError still reaches the author as an unexplained 500 rather than a rolled-back transaction with a message. Unchanged by this stage.
 - The build's closing log line now prints an absolute path where it printed 'site/'. Cosmetic, but it is a real output difference and anything parsing that line would see it.
-- f466c63 is committed locally only. Kino on ppmanchester is level with origin, so the two are now divergent until this is pushed and pulled deliberately.
+- Seven commits are local only (f466c63, 295f5c4 and the five M0 commits of 2026-09-30); origin/main is 404d101. Kino on ppmanchester was observed at 404d101 with kino.service active on 2026-09-30, so host and local copy diverge until a push and pull are approved.
+- M0 hardening (2026-09-30), local only and not deployed: request guard (Host allowlist + Origin/Sec-Fetch-Site check), sync failures reported rather than 500, discovery document + 404.html, commons_spec 0.3, MIT LICENSE, CI workflow. Deploying the guard needs KINO_ALLOWED_HOSTS set if Kino is opened by any name other than its tailnet IP.
 
 Do not revisit completed architectural decisions unless necessary.
 ```
@@ -157,11 +157,11 @@ Do not revisit completed architectural decisions unless necessary.
 | goal | model | 2026-09-02T15:40:34Z | — |
 | definition_of_done | model | 2026-09-02T15:40:34Z | — |
 | docs | model | 2026-09-02T15:40:34Z | — |
-| git | observed | 2026-09-02T15:40:34Z | — |
+| git | observed | 2026-09-30T18:47:18Z | — |
 | next_task | model | 2026-09-02T15:40:34Z | — |
 | risks | model | 2026-09-02T15:40:34Z | — |
 | estimated_remaining | model | 2026-09-02T15:40:34Z | — |
-| summary | recovered | 2026-08-01T19:57:37Z | — |
+| summary | model | 2026-09-30T18:47:18Z | — |
 | blockers | model | 2026-09-02T15:40:34Z | — |
 
 _Latest session log: `20260902T154034Z-9ae8f081.md`_
