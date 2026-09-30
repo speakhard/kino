@@ -116,6 +116,35 @@ host must fail to connect (not 200):
 
     curl -s -o /dev/null -w '%{http_code}\n' http://<PUBLIC_OR_LAN_IP>:11914/     # connection refused
 
+**Rebound and cross-site requests are refused** (the request guard, below):
+
+    curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: evil.example:11914' http://<TAILSCALE_IP>:11914/films   # 403
+    curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Origin: https://evil.example' http://<TAILSCALE_IP>:11914/erase/none   # 403
+    curl -s -o /dev/null -w '%{http_code}\n' -X POST http://<TAILSCALE_IP>:11914/erase/none   # 403 (no Origin)
+    curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'Origin: http://<TAILSCALE_IP>:11914' http://<TAILSCALE_IP>:11914/erase/none   # 302
+
+## Request guard
+
+Kino has no login; the tailnet is its boundary. That stops strangers reaching
+it, but not a hostile page open in a browser on a tailnet device, which can
+submit a form to any address it can reach or rebind its own hostname to this
+one. `request_guard.py` refuses both, and a person using Kino normally never
+sees it:
+
+| Check | Applies to | Refused with 403 when |
+|---|---|---|
+| Host allowlist (DNS rebinding) | every request | `Host` is not `KINO_HOST:KINO_PORT`, loopback (`127.0.0.1`, `localhost`, `[::1]`, any port), or listed in `KINO_ALLOWED_HOSTS` |
+| Origin check (CSRF) | POST, PUT, PATCH, DELETE | `Sec-Fetch-Site` is `cross-site` or `same-site`; or `Origin` is present and is not this request's own `scheme://host`; or neither header is present and `KINO_ALLOW_LEGACY_CLIENTS` is not `1` |
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `KINO_ALLOWED_HOSTS` | *(empty)* | Extra `host:port` names the service answers to, comma-separated — e.g. `ppmanchester:11914` if it is opened by MagicDNS name |
+| `KINO_ALLOW_LEGACY_CLIENTS` | *(unset)* | `1` admits unsafe requests carrying neither `Origin` nor `Sec-Fetch-Site` (non-browser tools). Cross-site requests are refused regardless |
+
+Both are commented out in `deploy/kino.service`. `same-site` is refused as well
+as `cross-site` on purpose: every tailnet host is the same site as every other.
+Kino receives no bearer-authenticated API calls, so no endpoint is exempt.
+
 ## 5. Roll back
 
 Remove the service without touching any published film:

@@ -29,6 +29,17 @@ WorkingDirectory=__KINO_DIR__
 Environment=KINO_HOST=__TAILSCALE_IP__
 Environment=KINO_PORT=11914
 
+# Request guard (request_guard.py; deploy/README.md "Request guard"). With no
+# login, these are what stop a page open in a tailnet browser from driving the
+# service. Every request must name a Host the service answers to: the
+# KINO_HOST:KINO_PORT above, or loopback. Reached by any other name (MagicDNS,
+# e.g. ppmanchester:11914)? List it, comma-separated:
+#Environment=KINO_ALLOWED_HOSTS=ppmanchester:11914
+# POST/PUT/PATCH/DELETE must carry Origin or Sec-Fetch-Site naming this origin.
+# Every browser does. A non-browser client that sends neither is refused unless
+# this is set — leave it unset unless such a client is known and wanted:
+#Environment=KINO_ALLOW_LEGACY_CLIENTS=1
+
 # Git over SSH, with connection multiplexing off.
 #
 # The managed tailnet SSH config sets `ControlMaster auto` for `Host *` (added

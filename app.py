@@ -23,6 +23,7 @@ from flask import (Flask, redirect, render_template, request,
 import entries as entry_store
 import hosts
 import publication
+import request_guard
 import visibility
 from builder import site_config
 from covers import CARD_NAME, COVER_NAME
@@ -31,6 +32,13 @@ from models import (MAX_DESCRIPTION, MAX_TITLE, display_title, entry_date,
 from publisher import PublishError, erase, publish, revise, withdraw
 
 app = Flask(__name__)
+
+# No login, so the network is the boundary — and a browser on that network can
+# be steered by any page it has open. Refuse rebound Host headers and
+# cross-origin writes (request_guard.py); same-origin use is unaffected. The
+# variables are serve.py's own, so the guard knows the address it is bound to.
+request_guard.install(app, prefix="KINO", default_host="127.0.0.1",
+                      default_port=11914)
 
 # A cover image, not a film. Generous but bounded — nothing large should ever
 # reach this application, because the video never comes here at all.
