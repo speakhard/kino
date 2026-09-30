@@ -1,0 +1,40 @@
+{#- The page a static host serves for an address this publication has no page at.
+
+    Deliberately NOT built on the shared shell. The shell resolves its stylesheets
+    and links relative to the page (`'../' * depth`), and a host serves this one
+    file at whatever address was asked for — /filmed/x/y/z as readily as
+    /filmed/nope — so every relative reference in it would resolve somewhere
+    different, and wrong, each time. Everything here is absolute, beneath the
+    publication's canonical root, so it renders the same at any depth.
+
+    It exists for two reasons. A reader who follows a dead link should land on
+    Filmed, not on a blank or foreign page. And without it Cloudflare Pages
+    answers every unknown path with the home page at 200 — the soft 404 that
+    made /commons.json look present to a client and fail as HTML (§11.1). -#}
+{% set root = site | root %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Not found — {{ site.name }}</title>
+{% if site.get('branding', {}).get('accent') %}<style>:root { --accent: {{ site.branding.accent }}; }</style>{% endif %}
+<link rel="stylesheet" href="{{ root | url('static/commons.css') }}">
+<link rel="stylesheet" href="{{ root | url('static/style.css') }}">
+</head>
+<body>
+
+<header class="masthead">
+  <a class="wordmark" href="{{ root }}">{{ site.name }}</a>
+</header>
+
+<main>
+<h1>Not here</h1>
+<p class="empty">There is no film at this address. It may have been mistyped, or
+erased because it was published by mistake — a withdrawn film keeps its page.</p>
+<p><a href="{{ root }}">{{ site.name }}</a> · <a href="{{ root | url('archive/') }}">Archive</a></p>
+</main>
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 {
-  "commons_spec": "0.2",
+  "commons_spec": "0.3",
   "profile": "kino",
   "capabilities": [
     "syndication"

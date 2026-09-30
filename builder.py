@@ -22,6 +22,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoes
 import urls
 from markupsafe import escape
 
+import discovery
 import entries as entry_store
 import hosts
 import publication
@@ -45,6 +46,7 @@ def _env() -> Environment:
         lstrip_blocks=True,
     )
     env.filters["url"] = urls.url
+    env.filters["root"] = urls.root
     env.filters["date"] = lambda f, fmt="%B %-d, %Y": entry_date(f).strftime(fmt)
     env.filters["runtime"] = runtime_display
     env.filters["title_of"] = display_title
@@ -145,6 +147,16 @@ def build(entries_root=None, artifacts_root=None) -> None:
 
         shutil.copy(publication.masthead(), staging / "masthead.json")
 
+        # The publication describes itself at the two addresses §11.1 names.
+        # Without it a client asking for /commons.json got the home page, as
+        # HTML, at 200. A manifest that cannot produce the document fails the
+        # build here rather than publishing something a client would reject.
+        discovery.write(site, staging)
+
+        # And a dead address answers as one. Without a 404.html, Cloudflare
+        # Pages serves the home page at 200 for every unknown path.
+        _render(env, "404.html", staging / "404.html", site=site)
+
         missing = _copy_covers(permalinked, staging, artifacts_root)
         if missing:
             raise BuildError("Missing cover images: " + "; ".join(missing[:5]))
@@ -187,6 +199,23 @@ def verify(site_dir: Path, permalinked, listed) -> None:
     index = site_dir / "index.html"
     if not index.exists():
         raise BuildError("index.html was not generated")
+
+    # Part of the published artifact (§11.1), so a build without it is
+    # incomplete — the same check Crows makes.
+    for relative in (discovery.WELL_KNOWN_RELATIVE, discovery.MIRROR_RELATIVE):
+        path = site_dir / relative
+        if not path.exists():
+            raise BuildError(f"discovery document {relative} was not generated")
+        try:
+            advertised = json.loads(path.read_text(encoding="utf-8"))
+        except ValueError as error:
+            raise BuildError(f"discovery document {relative} is not valid JSON: {error}")
+        absent = [f for f in discovery.REQUIRED_FIELDS if not advertised.get(f)]
+        if absent:
+            raise BuildError(f"discovery document {relative} is missing: {', '.join(absent)}")
+
+    if not (site_dir / "404.html").exists():
+        raise BuildError("404.html was not generated")
 
     index_html = index.read_text(encoding="utf-8")
 
