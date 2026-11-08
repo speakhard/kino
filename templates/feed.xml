@@ -49,7 +49,7 @@
        to the film's WATCH page on its host (vimeo.com/<id>); it has never hidden
        which host plays the film — the player URL names it, here as on the page.
        A reader (thecommons.pub) uses this to offer click-to-load playback. #}
-    <media:player url="{{ film | player }}"/>
+    <media:player url="{{ film.video | embed }}"/>
     {% if film.description %}<summary>{{ film.description }}</summary>{% endif %}
   </entry>
 {% endfor %}

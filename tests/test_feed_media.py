@@ -96,6 +96,22 @@ class FeedThumbnails(unittest.TestCase):
         self.assertEqual([e.find(ATOM + "link").get("href") for e in feed.findall(ATOM + "entry")],
                          [f"https://joshbernhard.com/filmed/f/{f['id']}/" for f in listed])
 
+    def test_every_entry_names_its_player_and_no_watch_page(self):
+        # media:player is the same embed URL the film's page loads in its
+        # iframe (hosts.embed_url). The host-invisibility rule forbids a link
+        # to the film's WATCH page on its host; the feed carries none.
+        import hosts
+        import entries as entry_store
+        import visibility
+        root, feed = self.build()
+        listed = [f for f in entry_store.load_entries(root / "entries")
+                  if visibility.is_syndicated(f)]
+        players = [e.find(MEDIA + "player").get("url") for e in feed.findall(ATOM + "entry")]
+        self.assertEqual(players, [hosts.embed_url(f["video"]) for f in listed])
+        text = (root / "site" / "feed.xml").read_text(encoding="utf-8")
+        for f in listed:
+            self.assertNotIn(hosts.watch_url(f["video"]), text)
+
     def test_a_card_whose_size_is_unknown_still_gets_a_thumbnail(self):
         with publications.temporary(self.tmp / "pub2", records=True) as root:
             for card in (root / "artifacts").glob("*/card.jpg"):
