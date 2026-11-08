@@ -70,6 +70,68 @@ def site_config() -> dict:
         raise BuildError(str(error)) from error
 
 
+# --- card dimensions, for the feed -------------------------------------------
+#
+# The feed names each film's card.jpg as its media:thumbnail, and a reader lays
+# out a card without a layout shift only if it knows the picture's size. The
+# card is derived on the authoring host (covers.save_cover: thumbnail() into an
+# 800px box, so its size depends on the upload) and the deploy build has no
+# Pillow on purpose (requirements-build.txt). So the size is read from the JPEG
+# header — the frame header, a few bytes in — not by decoding the image.
+#
+# Own, not adopt: these are JPEGs Kino itself wrote, the only question asked is
+# the frame size, and the answer for anything unexpected is "unknown", which
+# omits width/height rather than failing the build.
+
+_SOF = {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}
+
+
+def jpeg_size(path: Path):
+    """(width, height) from a baseline or progressive JPEG's frame header, or
+    None if the file is missing, not a JPEG, or has no readable frame header."""
+    try:
+        data = Path(path).read_bytes()
+    except OSError:
+        return None
+    if data[:2] != b"\xff\xd8":
+        return None
+    i = 2
+    while i + 4 <= len(data):
+        if data[i] != 0xFF:
+            return None
+        marker = data[i + 1]
+        if marker == 0xFF:          # fill byte
+            i += 1
+            continue
+        if marker in (0xD8, 0x01) or 0xD0 <= marker <= 0xD7:   # no length field
+            i += 2
+            continue
+        length = int.from_bytes(data[i + 2:i + 4], "big")
+        if marker in _SOF:
+            if i + 9 > len(data):
+                return None
+            height = int.from_bytes(data[i + 5:i + 7], "big")
+            width = int.from_bytes(data[i + 7:i + 9], "big")
+            return (width, height) if width and height else None
+        if marker == 0xDA or length < 2:    # image data began first: give up
+            return None
+        i += 2 + length
+    return None
+
+
+def _feed_cards(syndicated, permalinked, artifacts_root) -> dict:
+    """{film id: (width, height) or None} for each syndicated film whose card
+    the build will publish — a permalinked film's covers/<id>/card.jpg, copied
+    by _copy_covers(), which fails the build if it is missing. A film not in
+    this dict gets no media:thumbnail, so the feed never names an unserved file."""
+    served = {f["id"] for f in permalinked}
+    cards = {}
+    for film in syndicated:
+        source = Path(artifacts_root) / film["id"] / CARD_NAME
+        if film["id"] in served and source.exists():
+            cards[film["id"]] = jpeg_size(source)
+    return cards
+
 
 def _render(env, template, out: Path, **context) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -120,9 +182,10 @@ def build(entries_root=None, artifacts_root=None) -> None:
         _render(env, "archive.html", staging / "archive" / "index.html",
                 years=entry_store.group_by_year(listed), site=site, depth=1)
 
+        syndicated = [f for f in listed if visibility.is_syndicated(f)]
         _render(env, "feed.xml", staging / "feed.xml",
-                films=[f for f in listed if visibility.is_syndicated(f)],
-                site=site, depth=0)
+                films=syndicated, site=site, depth=0,
+                cards=_feed_cards(syndicated, permalinked, artifacts_root))
 
         # `page_canonical` is the film's own address (PROTOCOL.md §3 — "the
         # object's single source of truth"), built the same way the feed builds

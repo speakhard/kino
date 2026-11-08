@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
   <title>{{ site.name }}</title>
   <subtitle>{{ site.description }}</subtitle>
   <link href="{{ site.url | url('feed.xml') }}" rel="self"/>
@@ -37,6 +37,13 @@
         rehosted; this must not. -#}
     <id>{{ film.guid }}</id>
     <updated>{{ film.created }}</updated>
+    {# The film's card, the picture a reader shows beside the title, from this
+       publication's own covers/ (Media RSS; added 2026-11-07,
+       reports/commons-design-audit-and-publishing-plan-2026-11-07.md §3).
+       width/height when the card's header gives them (builder.jpeg_size). #}
+    {% if film.id in cards %}{% set size = cards[film.id] %}
+    <media:thumbnail url="{{ site.url | url('covers/' ~ film.id ~ '/card.jpg') }}"{% if size %} width="{{ size[0] }}" height="{{ size[1] }}"{% endif %}/>
+    {% endif %}
     {% if film.description %}<summary>{{ film.description }}</summary>{% endif %}
   </entry>
 {% endfor %}
