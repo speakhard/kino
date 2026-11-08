@@ -44,6 +44,12 @@
     {% if film.id in cards %}{% set size = cards[film.id] %}
     <media:thumbnail url="{{ site.url | url('covers/' ~ film.id ~ '/card.jpg') }}"{% if size %} width="{{ size[0] }}" height="{{ size[1] }}"{% endif %}/>
     {% endif %}
+    {# The film's player: the same embed URL every page's iframe already loads
+       (hosts.embed_url). Kino's host-invisibility rule forbids linking a reader
+       to the film's WATCH page on its host (vimeo.com/<id>); it has never hidden
+       which host plays the film — the player URL names it, here as on the page.
+       A reader (thecommons.pub) uses this to offer click-to-load playback. #}
+    <media:player url="{{ film | player }}"/>
     {% if film.description %}<summary>{{ film.description }}</summary>{% endif %}
   </entry>
 {% endfor %}
